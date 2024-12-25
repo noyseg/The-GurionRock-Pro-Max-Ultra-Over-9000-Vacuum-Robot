@@ -1,6 +1,7 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.objects.GPSIMU;
 
 /**
  * PoseService is responsible for maintaining the robot's current pose (position and orientation)
@@ -24,6 +25,6 @@ public class PoseService extends MicroService {
      */
     @Override
     protected void initialize() {
-        // TODO Implement this
+        // Subscribes to TickBroadcast.
     }
 }
