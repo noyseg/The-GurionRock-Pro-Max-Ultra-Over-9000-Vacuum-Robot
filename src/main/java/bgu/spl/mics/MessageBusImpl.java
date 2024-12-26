@@ -7,7 +7,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
 
-
 /**
  * The {@link MessageBusImpl class is the implementation of the MessageBus interface.
  * Write your implementation here!
@@ -16,46 +15,48 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class MessageBusImpl implements MessageBus {
 	private static MessageBusImpl instance = new MessageBusImpl();
-	// pointer and etc???? 
-	private final ConcurrentHashMap<MicroService, MicroService []> menageMicroServiceInMessegeBus;
-	private final ConcurrentHashMap<Class<? extends Event>, LinkedList<MicroService>> eventSubscribers; // does they all need to be conncurent?
-	private final ConcurrentHashMap<Class<? extends Broadcast>, LinkedList<MicroService>> broadcastSubscribers;
+	// to check yellow line 
+	private final ConcurrentHashMap<Class<? extends Event>, BlockingQueue<MicroService>> eventSubscribers;
+	private final ConcurrentHashMap<Class<? extends Broadcast>, BlockingQueue<MicroService>> broadcastSubscribers;
 	private final ConcurrentHashMap<MicroService,BlockingQueue<Message>> callBacksAwait;
-	private final ConcurrentHashMap<Event<?>, Future<?>> eventFindFutures;
+	private final ConcurrentHashMap<Event<?>, Future<?>> eventAndFutureUnresolved;
 
 	// CopyOnWriteArrayList<MicroService>> broadcastSubscribers
 	private MessageBusImpl(){
-		// where to MicroService []; 
-		menageMicroServiceInMessegeBus = new ConcurrentHashMap<>();
-		eventSubscribers = new ConcurrentHashMap<>(); //do it need to be size of 2?
-		broadcastSubscribers = new ConcurrentHashMap<>(); // what??
+		eventSubscribers = new ConcurrentHashMap<>(3); //do it need to be size of 2? beacuese of pose events 
+		broadcastSubscribers = new ConcurrentHashMap<>(3);
 		callBacksAwait = new ConcurrentHashMap<>();
-		eventFindFutures = new ConcurrentHashMap<>();
+		eventAndFutureUnresolved = new ConcurrentHashMap<>();
 	}
 
 	public MessageBusImpl getIstance(){
 		return instance;
 	}
 
-	/// getim does it found for sure? not null and etc 
 	@Override
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
-		menageMicroServiceInMessegeBus.get(m)[1] = m;
-		eventSubscribers.get(type).add(m); //do we need new or something? 
+		if (eventSubscribers.get(type) == null){
+			eventSubscribers.put(type, new LinkedBlockingQueue<>());
+		}
+		eventSubscribers.get(type).add(m); 
 	}
 
 	@Override
 	public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
-		menageMicroServiceInMessegeBus.get(m)[0] = m;
-		broadcastSubscribers.get(type).add(m); //do we need new or something? 
+		if (broadcastSubscribers.get(type) == null){
+			broadcastSubscribers.put(type, new LinkedBlockingQueue<>());
+		}
+		broadcastSubscribers.get(type).add(m); 
 	}
 
-	// Mabey linking microservises to their futures? 
 	@Override
 	public <T> void complete(Event<T> e, T result) {
-		Future<T> future = (Future<T>)eventFindFutures.get(e);
-		if (future!=null)
+		Future<T> future = (Future<T>)eventAndFutureUnresolved.get(e);
+		if (future != null){
 			future.resolve(result);
+			eventAndFutureUnresolved.remove(e);
+		}
+		
 	}
 
 	@Override
@@ -78,7 +79,7 @@ public class MessageBusImpl implements MessageBus {
 		}
 		// Event doesn't already exists 
 		Future<T> future = new Future<T>();
-		eventFindFutures.put(e,future);
+		eventAndFutureUnresolved.put(e,future);
 		return future;
 	}
 
@@ -86,7 +87,6 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	public void register(MicroService m) {
 		callBacksAwait.put(m,new LinkedBlockingQueue<Message>());
-		menageMicroServiceInMessegeBus.put(m, null)
 
 	}
 
