@@ -7,7 +7,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
 
-
 /**
  * The {@link MessageBusImpl class is the implementation of the MessageBus interface.
  * Write your implementation here!
@@ -15,91 +14,103 @@ import java.util.concurrent.LinkedBlockingQueue;
  * All other methods and members you add the class must be private.
  */
 public class MessageBusImpl implements MessageBus {
-	private static MessageBusImpl instance = new MessageBusImpl();
-	// pointer and etc???? 
-	private final ConcurrentHashMap<MicroService, MicroService []> menageMicroServiceInMessegeBus;
-	private final ConcurrentHashMap<Class<? extends Event>, LinkedList<MicroService>> eventSubscribers; // does they all need to be conncurent?
-	private final ConcurrentHashMap<Class<? extends Broadcast>, LinkedList<MicroService>> broadcastSubscribers;
-	private final ConcurrentHashMap<MicroService,BlockingQueue<Message>> callBacksAwait;
-	private final ConcurrentHashMap<Event<?>, Future<?>> eventFindFutures;
+	private static class MessageBusHolder {
+		private static MessageBusImpl instance = new MessageBusImpl();
+	}
+
+	// to check yellow line 
+	private final ConcurrentHashMap<Class<? extends Event>, BlockingQueue<MicroService>> eventSubscribers;
+	private final ConcurrentHashMap<Class<? extends Broadcast>, BlockingQueue<MicroService>> broadcastSubscribers;
+	private final ConcurrentHashMap<MicroService,BlockingQueue<Message>> microServicesQueues;
+	private final ConcurrentHashMap<Event<?>, Future<?>> eventAndFutureUnresolved;
 
 	// CopyOnWriteArrayList<MicroService>> broadcastSubscribers
 	private MessageBusImpl(){
-		// where to MicroService []; 
-		menageMicroServiceInMessegeBus = new ConcurrentHashMap<>();
-		eventSubscribers = new ConcurrentHashMap<>(); //do it need to be size of 2?
-		broadcastSubscribers = new ConcurrentHashMap<>(); // what??
-		callBacksAwait = new ConcurrentHashMap<>();
-		eventFindFutures = new ConcurrentHashMap<>();
+		eventSubscribers = new ConcurrentHashMap<>(3); //do it need to be size of 2? beacuese of pose events 
+		broadcastSubscribers = new ConcurrentHashMap<>(3);
+		microServicesQueues = new ConcurrentHashMap<>();
+		eventAndFutureUnresolved = new ConcurrentHashMap<>();
 	}
 
 	public MessageBusImpl getIstance(){
-		return instance;
+		return MessageBusHolder.instance;
 	}
 
-	/// getim does it found for sure? not null and etc 
 	@Override
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
-		menageMicroServiceInMessegeBus.get(m)[1] = m;
-		eventSubscribers.get(type).add(m); //do we need new or something? 
+		eventSubscribers.putIfAbsent(type, new LinkedBlockingQueue<>()); // If specified key is not already associated with a value, associate it with the given value atomicly
+		eventSubscribers.get(type).add(m); 
 	}
 
 	@Override
 	public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
-		menageMicroServiceInMessegeBus.get(m)[0] = m;
-		broadcastSubscribers.get(type).add(m); //do we need new or something? 
+		broadcastSubscribers.putIfAbsent(type, new LinkedBlockingQueue<>());// If specified key is not already associated with a value, associate it with the given value atomicly
+		broadcastSubscribers.get(type).add(m); 
 	}
 
-	// Mabey linking microservises to their futures? 
 	@Override
 	public <T> void complete(Event<T> e, T result) {
-		Future<T> future = (Future<T>)eventFindFutures.get(e);
-		if (future!=null)
-			future.resolve(result);
+		Future<T> future = (Future<T>)eventAndFutureUnresolved.get(e);
+		future.resolve(result);
+		eventAndFutureUnresolved.remove(e);
 	}
 
 	@Override
-	// not to have a problem with time service and terminated!!!!! 
 	public void sendBroadcast(Broadcast b) {
 		for (MicroService ms: broadcastSubscribers.get(b.getClass())){
-			callBacksAwait.get(ms).add(b); // chat did offer and asked null in neccesery 
+			microServicesQueues.get(ms).add(b); 
 		}
 	}
+
     // does e is unique?? 
 	// according to what the hash map maps MicroService nameqadreess?? 	
 	@Override
 	public <T> Future<T> sendEvent(Event<T> e) {
-		LinkedList<MicroService> eventOptions = eventSubscribers.get(e.getClass());
-		// what happens to the other thread??????
+		BlockingQueue<MicroService> eventOptions = eventSubscribers.get(e.getClass());
+		// To check if possible that there will be something to process but no microservice in queue to handle it 
 		synchronized (eventOptions){
-		MicroService m = eventOptions.removeFirst();
-		eventOptions.addLast(m); // keep round robin 
-		callBacksAwait.get(m).add(e);
+		MicroService m = eventOptions.poll();
+		if (m != null){
+			eventOptions.add(m); // keep round robin 
+			microServicesQueues.get(m).add(e);
+		}
 		}
 		// Event doesn't already exists 
 		Future<T> future = new Future<T>();
-		eventFindFutures.put(e,future);
+		eventAndFutureUnresolved.put(e,future);
 		return future;
 	}
 
 	// where intitilization of events creation and all of those?? 
 	@Override
 	public void register(MicroService m) {
-		callBacksAwait.put(m,new LinkedBlockingQueue<Message>());
-		menageMicroServiceInMessegeBus.put(m, null)
-
+		microServicesQueues.put(m,new LinkedBlockingQueue<Message>());
 	}
 
 	@Override
-	public void unregister(MicroService m) {
-		// TODO Auto-generated method stub
-
+	// if neccecry to do on all or handle other way 
+	// Synchronized becasue we don't want to assign new messeges to MicroService m 
+	public synchronized void unregister(MicroService m) {
+		if (microServicesQueues.containsKey(m)){
+			for (BlockingQueue<MicroService> ev: eventSubscribers.values()){
+				ev.remove(m);
+			}
+			for (BlockingQueue<MicroService> bc: broadcastSubscribers.values()){
+				bc.remove(m);
+			}
+			for (Message mes: microServicesQueues.get(m)){
+				// if neccesery??? 
+				eventAndFutureUnresolved.get(mes).resolve(null); // We want to resolve any waiting Futures
+				eventAndFutureUnresolved.remove(mes);
+			}
+			microServicesQueues.remove(m);
+		}
 	}
 
 	@Override
 	// is this the interupted one? head? 
 	public Message awaitMessage(MicroService m) throws InterruptedException {
-		BlockingQueue<Message> queue = callBacksAwait.get(m);
+		BlockingQueue<Message> queue = microServicesQueues.get(m);
         if (queue == null) {
             throw new IllegalStateException("MicroService not registered: " + m.getName());
         }
