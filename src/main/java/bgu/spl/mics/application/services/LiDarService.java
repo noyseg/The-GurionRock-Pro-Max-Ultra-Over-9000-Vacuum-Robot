@@ -1,6 +1,10 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
+<<<<<<< HEAD
+=======
+import bgu.spl.mics.application.objects.LiDarWorkerTracker;
+>>>>>>> 9adfc1fa37254a4a9c8910abb32cdc95fb1e48a6
 
 /**
  * LiDarService is responsible for processing data from the LiDAR sensor and
@@ -29,6 +33,10 @@ public class LiDarService extends MicroService {
      */
     @Override
     protected void initialize() {
+<<<<<<< HEAD
         // TODO Implement this
+=======
+        // Subscribes to TickBroadcast, TerminatedBroadcast, CrashedBroadcast, DetectObjectsEvent.
+>>>>>>> 9adfc1fa37254a4a9c8910abb32cdc95fb1e48a6
     }
 }

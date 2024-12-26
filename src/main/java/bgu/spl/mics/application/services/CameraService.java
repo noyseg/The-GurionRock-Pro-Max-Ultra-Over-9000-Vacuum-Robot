@@ -1,6 +1,10 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
+<<<<<<< HEAD
+=======
+import bgu.spl.mics.application.objects.Camera;
+>>>>>>> 9adfc1fa37254a4a9c8910abb32cdc95fb1e48a6
 
 /**
  * CameraService is responsible for processing data from the camera and
@@ -28,6 +32,10 @@ public class CameraService extends MicroService {
      */
     @Override
     protected void initialize() {
+<<<<<<< HEAD
         // TODO Implement this
+=======
+        // Subscribe to TickBroadcast, TerminatedBroadcast, CrashedBroadcast.
+>>>>>>> 9adfc1fa37254a4a9c8910abb32cdc95fb1e48a6
     }
 }
