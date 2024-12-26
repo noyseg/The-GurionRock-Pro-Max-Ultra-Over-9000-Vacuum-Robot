@@ -39,7 +39,8 @@ public class Future<T> {
 				lock.wait();
 			}
 			catch (InterruptedException ie){
-				Thread.currentThread().interrupt(); // To do put interuft somewhete
+				System.out.println("Get Future linit time Interrupt: " + Thread.currentThread());
+				Thread.currentThread().interrupt(); // To do put interrupt somewhere
 			}
 		}
 		return result;
@@ -83,9 +84,23 @@ public class Future<T> {
 		if (isResolved){
 			return result;
 		}
-		else{
+		long time = unit.toMillis(timeout);
+		long remainingTime = time; 
+		long endTime = System.currentTimeMillis() + remainingTime;
+		while(remainingTime > 0){
+			if (isResolved){
+				return result;
 			}
-			return result;
+			try {
+				lock.wait(remainingTime);
+			}
+			catch (InterruptedException ie){
+				System.out.println("Get Future linit time Interrupt: " + Thread.currentThread());
+				Thread.currentThread().interrupt(); // To do put interrupt somewhere
+			}
+			remainingTime = endTime - System.currentTimeMillis(); // to consider transform to another place to be accuratie 
+		}
+		return null; 
 	}
 
 }

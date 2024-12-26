@@ -17,7 +17,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class MessageBusImpl implements MessageBus {
 	private static MessageBusImpl instance = new MessageBusImpl();
 	// pointer and etc???? 
-	private final ConcurrentHashMap<MicroService, MicroService []> menageMicroServiceInMesseges;
+	private final ConcurrentHashMap<MicroService, MicroService []> menageMicroServiceInMessegeBus;
 	private final ConcurrentHashMap<Class<? extends Event>, LinkedList<MicroService>> eventSubscribers; // does they all need to be conncurent?
 	private final ConcurrentHashMap<Class<? extends Broadcast>, LinkedList<MicroService>> broadcastSubscribers;
 	private final ConcurrentHashMap<MicroService,BlockingQueue<Message>> callBacksAwait;
@@ -26,7 +26,7 @@ public class MessageBusImpl implements MessageBus {
 	// CopyOnWriteArrayList<MicroService>> broadcastSubscribers
 	private MessageBusImpl(){
 		// where to MicroService []; 
-		menageMicroServiceInMesseges = new ConcurrentHashMap<>();
+		menageMicroServiceInMessegeBus = new ConcurrentHashMap<>();
 		eventSubscribers = new ConcurrentHashMap<>(); //do it need to be size of 2?
 		broadcastSubscribers = new ConcurrentHashMap<>(); // what??
 		callBacksAwait = new ConcurrentHashMap<>();
@@ -40,13 +40,13 @@ public class MessageBusImpl implements MessageBus {
 	/// getim does it found for sure? not null and etc 
 	@Override
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
-		menageMicroServiceInMesseges.get(m)[1] = m;
+		menageMicroServiceInMessegeBus.get(m)[1] = m;
 		eventSubscribers.get(type).add(m); //do we need new or something? 
 	}
 
 	@Override
 	public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
-		menageMicroServiceInMesseges.get(m)[0] = m;
+		menageMicroServiceInMessegeBus.get(m)[0] = m;
 		broadcastSubscribers.get(type).add(m); //do we need new or something? 
 	}
 
@@ -86,7 +86,7 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	public void register(MicroService m) {
 		callBacksAwait.put(m,new LinkedBlockingQueue<Message>());
-		menageMicroServiceInMesseges.put(m, null)
+		menageMicroServiceInMessegeBus.put(m, null)
 
 	}
 
