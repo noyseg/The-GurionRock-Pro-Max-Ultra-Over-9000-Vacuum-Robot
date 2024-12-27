@@ -111,8 +111,8 @@ public class MessageBusImpl implements MessageBus {
 	// is this the interupted one? head? 
 	public Message awaitMessage(MicroService m) throws InterruptedException {
 		BlockingQueue<Message> queue = microServicesQueues.get(m);
-        if (queue == null) {
-            throw new IllegalStateException("MicroService not registered: " + m.getName());
+        if (queue == null) {// to check if can be not null after this line 
+            throw new IllegalStateException("MicroService not registered: " + m.getName()); 
         }
         return queue.take(); // Blocks until a message is available
 	}
