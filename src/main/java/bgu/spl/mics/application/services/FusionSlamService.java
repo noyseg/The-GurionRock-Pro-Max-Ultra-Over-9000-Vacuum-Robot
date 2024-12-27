@@ -1,10 +1,7 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
-<<<<<<< HEAD
-=======
 import bgu.spl.mics.application.objects.FusionSlam;
->>>>>>> 9adfc1fa37254a4a9c8910abb32cdc95fb1e48a6
 
 /**
  * FusionSlamService integrates data from multiple sensors to build and update
@@ -31,10 +28,6 @@ public class FusionSlamService extends MicroService {
      */
     @Override
     protected void initialize() {
-<<<<<<< HEAD
-        // TODO Implement this
-=======
         // Subscribes to TickBroadcast, TrackedObjectsEvent, PoseEvent, TerminatedBroadcast,CrashedBroadcast
->>>>>>> 9adfc1fa37254a4a9c8910abb32cdc95fb1e48a6
     }
 }

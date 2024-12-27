@@ -18,6 +18,9 @@ package bgu.spl.mics;
  * Only private fields and methods may be added to this class.
  * <p>
  */
+
+
+ //מבנה נתונים מהאש מאפ לאיוונטים
 public abstract class MicroService implements Runnable {
 
     private boolean terminated = false;

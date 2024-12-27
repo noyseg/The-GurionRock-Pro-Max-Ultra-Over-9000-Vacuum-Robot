@@ -32,7 +32,7 @@ public class MessageBusImpl implements MessageBus {
 		eventAndFutureUnresolved = new ConcurrentHashMap<>();
 	}
 
-	public MessageBusImpl getIstance(){
+	public static MessageBusImpl getIstance(){
 		return MessageBusHolder.instance;
 	}
 
