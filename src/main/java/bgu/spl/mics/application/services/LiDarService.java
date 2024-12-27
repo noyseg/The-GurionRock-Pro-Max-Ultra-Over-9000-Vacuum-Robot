@@ -1,7 +1,10 @@
 package bgu.spl.mics.application.services;
 
+import java.util.LinkedList;
+
 import bgu.spl.mics.MicroService;
-import bgu.spl.mics.application.objects.LiDarWorkerTracker;
+import bgu.spl.mics.application.messages.*;
+import bgu.spl.mics.application.objects.*;
 
 /**
  * LiDarService is responsible for processing data from the LiDAR sensor and
@@ -12,6 +15,8 @@ import bgu.spl.mics.application.objects.LiDarWorkerTracker;
  * observations.
  */
 public class LiDarService extends MicroService {
+    private final LiDarWorkerTracker lidarWorker;
+    private final LinkedList<LidarProcessed> lpList;
 
     /**
      * Constructor for LiDarService.
@@ -19,8 +24,9 @@ public class LiDarService extends MicroService {
      * @param LiDarWorkerTracker A LiDAR Tracker worker object that this service will use to process data.
      */
     public LiDarService(LiDarWorkerTracker LiDarWorkerTracker) {
-        super("Change_This_Name");
-        // TODO Implement this
+        super("Lidar" + LiDarWorkerTracker.getId());
+        this.lidarWorker = LiDarWorkerTracker;
+        this.lpList = new LinkedList<LidarProcessed>();
     }
 
     /**
@@ -30,6 +36,38 @@ public class LiDarService extends MicroService {
      */
     @Override
     protected void initialize() {
+        System.out.println("LiDarService " + getName() + " started");
+        subscribeEvent(DetectObjectsEvent.class, ev -> { 
+
+        });
+
+        subscribeBroadcast(TickBroadcast.class, tick -> {
+            processTick(tick);
+        });
+
+        subscribeBroadcast(TerminatedBroadcast.class, Terminated -> {
+
+        }
+        subscribeBroadcast(TerminatedBroadcast.class, Crashed -> {
+
+        }
         // Subscribes to TickBroadcast, TerminatedBroadcast, CrashedBroadcast, DetectObjectsEvent.
+    }
+
+    private void processTickDetectObjects(ev){
+
+    }
+    
+
+    private void processTick(TickBroadcast tick){
+        if(lpList.getFirst() != null && lpList.getFirst().getProcessionTime() == tick.getCurrentTime()){
+            sendEvent(new TrackedObjectsEvent(lpList.getFirst().getTrackedObjectsEvents(),getName())); // Sends event to fusion slum
+            lpList.remove(lpList.getFirst());
+        }
+        if (lidarWorker.getLastTrackedObjectList().tick.getCurrentTime().) {
+            
+        }
+        LidarProcessed lp = new LidarProcessed(tick.getCurrentTime()+lidarWorker.getFrequency(),LiDarDataBase.getInstance())
+        lpList.addLast(lp));
     }
 }

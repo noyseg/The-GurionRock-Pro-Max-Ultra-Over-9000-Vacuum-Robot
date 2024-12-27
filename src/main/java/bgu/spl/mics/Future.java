@@ -81,6 +81,7 @@ public class Future<T> {
      *         elapsed, return null.
      */
 	public T get(long timeout, TimeUnit unit) {
+		synchronized(lock){
 		if (isResolved){
 			return result;
 		}
@@ -101,5 +102,6 @@ public class Future<T> {
 			remainingTime = endTime - System.currentTimeMillis(); // to consider transform to another place to be accuratie 
 		}
 		return null; 
+	}
 	}
 }
