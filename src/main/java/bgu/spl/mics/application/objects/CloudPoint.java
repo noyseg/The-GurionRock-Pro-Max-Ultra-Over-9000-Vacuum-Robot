@@ -6,5 +6,31 @@ package bgu.spl.mics.application.objects;
  */
 public class CloudPoint {
 
-    // TODO: Define fields and methods.
+    private final double x;
+    private final double y;
+
+    /**
+     * Constructs a CloudPoint in a 2D space.
+     *
+     * @param x The X-coordinate of the point
+     * @param y The Y-coordinate of the point
+     */
+    public CloudPoint(double x, double y){
+        this.x = x;
+        this.y = y;
+    }
+
+     /**
+     * @return The X-coordinate of the point
+     */
+    public double getX(){
+        return this.x;
+    }
+
+     /**
+     * @return The Y-coordinate of the point
+     */
+    public double getY(){
+        return this.y;
+    }
 }

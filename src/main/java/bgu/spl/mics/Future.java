@@ -83,7 +83,8 @@ public class Future<T> {
 	 *         elapsed, return null.
 	 */
 	public T get(long timeout, TimeUnit unit) {
-		if (isResolved) {
+		synchronized(lock){
+		if (isResolved){
 			return result;
 		}
 		long time = unit.toMillis(timeout);
@@ -105,5 +106,6 @@ public class Future<T> {
 			}
 		}
 		return null;
+	}
 	}
 }
