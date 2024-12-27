@@ -44,4 +44,8 @@ public class Camera {
         return frequency;
     }
 
+    public void setStatus(STATUS error) {
+        this.status = error;
+    }
+
 }

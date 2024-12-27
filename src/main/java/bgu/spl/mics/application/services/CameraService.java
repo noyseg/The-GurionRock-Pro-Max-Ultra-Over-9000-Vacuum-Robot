@@ -73,7 +73,7 @@ public class CameraService extends MicroService {
 
             // Create and send DetectObjectsEvent for each detected object
             for (StampedDetectedObjects object : detectedObjects) {
-                sendEvent(new DetectObjectsEvent(object));
+                // sendEvent(new DetectObjectsEvent(object));
             }
         }
     }
