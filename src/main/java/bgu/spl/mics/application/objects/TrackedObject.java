@@ -12,24 +12,8 @@ public class TrackedObject {
     private int time; 
     private String id;
     private String description; 
-    private CloudPoint[] cloudPoint;
-
-    // /**
-    //  * Constructs a new TrackedObject.
-    //  * @param String      The id of the object
-    //  * @param time        The time the object was tracked
-    //  * @param description  A description of the object
-    //  * @param cloudPoints The array of CloudPoint objects representing the tracked object
-    //  * 
-    //  */
-    // public TrackedObject(String id, int time,String description, CloudPoint[] cloudPoint){
-    //     this.id = id;
-    //     this.time = time;
-    //     this.description = description;
-    //     this.cloudPoint[0] = cloudPoint[0];
-    //     this.cloudPoint[1] = cloudPoint[1];
-    // }
-
+    private CloudPoint[] coordinates;
+    
     // Defult constructor
     public TrackedObject(){}
 
@@ -86,28 +70,26 @@ public class TrackedObject {
     /**
      * @return the coordinates of the object
      */
-    public CloudPoint[] getCloudPoints(){
-        return this.cloudPoint;
+    public CloudPoint[] getCoordinates(){
+        return this.coordinates;
     }
     
     /**
     * Sets the coordinates of the object
     * 
-    * @param cp the coordinates of the object
+    * @param cloudPoint the coordinates of the object
      */
-    public void setCloudPoints(CloudPoint[] cloudPoint){
-        this.cloudPoint[0] = cloudPoint[0];
-        this.cloudPoint[1] = cloudPoint[1];
+    public void setCoordinates(CloudPoint[] cloudPoints){
+        this.coordinates = cloudPoints;
     }
-    
+
     @Override
     public String toString() {
         return "TrackedObject{" +
                 "time=" + time +
                 ", id='" + id + '\'' +
                 ", description='" + description + '\'' +
-                ", cloudPoint=" + Arrays.toString(cloudPoint) +
+                ", coordinates=" + Arrays.toString(coordinates) +
                 '}';
     }
-
 }

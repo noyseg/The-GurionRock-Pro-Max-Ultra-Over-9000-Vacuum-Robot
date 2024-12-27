@@ -1,26 +1,38 @@
 package bgu.spl.mics.application.objects;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.io.FileReader;
+import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.List;
 
-public class main{
+public class main {
     public static void main(String[] args) {
-        // Define the path to the input file
-        String filePath = "C:\\Users\\n3seg\\OneDrive\\Desktop\\GitHub\\Assignment2\\example input\\lidar_data.json";
+        // Path to the JSON file
+        String filePath = "C:\\Users\\n3seg\\OneDrive\\Desktop\\GitHub\\Assignment2\\example_input_2\\lidar_data.json";
 
-        // Get the singleton instance of LiDarDataBase
-        LiDarDataBase database = LiDarDataBase.getInstance(filePath);
+        try (FileReader reader = new FileReader(filePath)) {
+            Gson gson = new Gson();
 
-        // Retrieve the tracked objects
-        List<TrackedObject> trackedObjects = database.getTrackedObjects();
+            // Define the type for deserialization
+            Type listType = new TypeToken<List<StampedCloudPoints>>() {}.getType();
 
-        // Check if the data was loaded successfully
-        if (trackedObjects == null || trackedObjects.isEmpty()) {
-            System.out.println("No tracked objects found or failed to load data.");
-        } else {
-            System.out.println("Tracked Objects:");
-            for (TrackedObject obj : trackedObjects) {
-                System.out.println(obj.toString());
+            // Deserialize the JSON file
+            List<StampedCloudPoints> stampedCloudPoints = gson.fromJson(reader, listType);
+
+            // Print the loaded data
+            if (stampedCloudPoints != null) {
+                System.out.println("Tracked Objects:");
+                for (StampedCloudPoints stm : stampedCloudPoints) {
+                    System.out.println(stm);
+                }
+            } else {
+                System.out.println("No data found in the file.");
             }
+        } catch (IOException e) {
+            System.err.println("Error reading file: " + e.getMessage());
         }
     }
 }

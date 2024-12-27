@@ -16,13 +16,13 @@ public class LiDarDataBase {
     private static class DataBaseHolder{
         private static LiDarDataBase Instance = new LiDarDataBase(); 
     }
-    private List<TrackedObject> trackedObjects;
+    private List<StampedCloudPoints> stampedCloudPoints;
 
     /**
      * Private constructor to enforce the Singleton pattern.
      */
     private LiDarDataBase() {
-        this.trackedObjects = new LinkedList<TrackedObject>();
+        this.stampedCloudPoints = new LinkedList<StampedCloudPoints>();
     }
 
     /**
@@ -34,7 +34,7 @@ public class LiDarDataBase {
     public static LiDarDataBase getInstance(String filePath) {
         LiDarDataBase instance = DataBaseHolder.Instance;
         synchronized (instance) {
-            if (instance.trackedObjects.isEmpty()) { // Data is only read once
+            if (instance.stampedCloudPoints.isEmpty()) { // Data is only read once
                 instance.loadData(filePath);
             }
         }
@@ -49,11 +49,11 @@ public class LiDarDataBase {
     private void loadData(String filePath) {
         try (FileReader reader = new FileReader(filePath)) {
             Gson gson = new Gson();
-            Type listType = new TypeToken<List<TrackedObject>>() {}.getType();
-            trackedObjects = gson.fromJson(reader, listType);
+            Type listType = new TypeToken<List<StampedCloudPoints>>() {}.getType();
+            stampedCloudPoints = gson.fromJson(reader, listType);
         } catch (IOException e) {
             System.err.println("Failed to load LiDAR data: " + e.getMessage());
-            trackedObjects = null;
+            stampedCloudPoints = null;
         }
     }
 
@@ -62,8 +62,8 @@ public class LiDarDataBase {
      *
      * @return A list of tracked objects, or null if the data is not loaded.
      */
-    public List<TrackedObject> getTrackedObjects() {
-        return trackedObjects;
+    public List<StampedCloudPoints> getStampedCloudPoints() {
+        return stampedCloudPoints;
     }
 }
 
