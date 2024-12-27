@@ -71,20 +71,19 @@ public class MessageBusImpl implements MessageBus {
 	// according to what the hash map maps MicroService nameqadreess??
 	@Override
 	public <T> Future<T> sendEvent(Event<T> e) {
-		Future<T> future = new Future<T>();
-		eventAndFutureUnresolved.put(e, future);
+		// To check if possible that there will be something to process but no microservice in queue to handle it 
 		BlockingQueue<MicroService> eventOptions = eventSubscribers.get(e.getClass());
-		// To check if possible that there will be something to process but no
-		// microservice in queue to handle it
-		synchronized (eventOptions) {
+		synchronized (eventOptions){
 			MicroService m = eventOptions.poll();
-			if (m != null) {
-				eventOptions.add(m); // keep round robin
+			if (m != null){
+				eventOptions.add(m); // keep round robin 
+				Future<T> future = new Future<T>();
+				eventAndFutureUnresolved.put(e,future);
 				microServicesQueues.get(m).add(e);
+				return future;
 			}
 		}
-		
-		return future;
+		return null; // In case no micro-service has subscribed
 	}
 
 	// where intitilization of events creation and all of those??

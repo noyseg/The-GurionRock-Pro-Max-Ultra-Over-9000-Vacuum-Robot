@@ -1,5 +1,7 @@
 package bgu.spl.mics.application.messages;
 
-public class TrackedObjectsEvent {
+import bgu.spl.mics.Event;
+
+public class TrackedObjectsEvent implements Event<TrackedObjectsEvent>{
     
 }

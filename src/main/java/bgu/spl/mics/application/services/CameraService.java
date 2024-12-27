@@ -1,13 +1,17 @@
 package bgu.spl.mics.application.services;
 
+import java.util.LinkedList;
 import java.util.List;
 
+import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.CrashedBroadcast;
 import bgu.spl.mics.application.messages.DetectObjectsEvent;
 import bgu.spl.mics.application.messages.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.objects.Camera;
+import bgu.spl.mics.application.objects.CameraProcessed;
+import bgu.spl.mics.application.objects.DetectedObject;
 import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
 import bgu.spl.mics.example.messages.ExampleBroadcast;
@@ -21,17 +25,18 @@ import bgu.spl.mics.example.messages.ExampleBroadcast;
  */
 public class CameraService extends MicroService {
     private final Camera camera;
-
+    private LinkedList<CameraProcessed> cpList; // List of camera data objects (time stamp+freq and detectedObjects)
+    private List<DetectedObject> lastDetectedObj; 
     /**
      * Constructor for CameraService.
      *
      * @param camera The Camera object that this service will use to detect objects.
      */
     public CameraService(Camera camera) {
-        super(camera.getName());
+        super("Camera" + camera.getID());
         this.camera = camera;
-        // TODO Implement this
-
+        this.cpList = new LinkedList<>();
+        lastDetectedObj = new LinkedList<DetectedObject>();
     }
 
     /**
@@ -43,7 +48,7 @@ public class CameraService extends MicroService {
     @Override
     protected void initialize() {
         // Subscribe to TickBroadcast, TerminatedBroadcast, CrashedBroadcast.
-        subscribeBroadcast(TickBroadcast.class,  tick -> {
+        subscribeBroadcast(TickBroadcast.class, tick -> {
             if (camera.getStatus() == STATUS.UP) {
                 processTick(tick);
             }
@@ -51,30 +56,53 @@ public class CameraService extends MicroService {
 
         // Subscribe to TerminateBroadcast to gracefully shut down
         subscribeBroadcast(TerminatedBroadcast.class, terminate -> {
-            terminate(); // Shutdown the MicroService
+            camera.setStatus(STATUS.DOWN);
+            if (terminate.getSenderId().equals("TimeService")) {
+                sendBroadcast(new TerminatedBroadcast(getName()));
+                terminate();
+            }
         });
 
         // Handle CrashedBroadcast (if needed)
         subscribeBroadcast(CrashedBroadcast.class, crash -> {
-            camera.setStatus(STATUS.ERROR);
+            //Print the most recent detectedObjects for the current camera
+
         });
     }
 
-     /**
+    /**
      * Processes a TickBroadcast to detect objects at the appropriate frequency.
      *
      * @param tick The TickBroadcast containing the current time.
      */
     private void processTick(TickBroadcast tick) {
-        // Check if the camera should detect objects at this tick
-        if (tick.getCurrentTime() % camera.getFrequency() == 0) {
-            // Simulate object detection
-            List<StampedDetectedObjects> detectedObjects = camera.getDetectedObjectsList();
-
-            // Create and send DetectObjectsEvent for each detected object
-            for (StampedDetectedObjects object : detectedObjects) {
-                // sendEvent(new DetectObjectsEvent(object));
+        for (StampedDetectedObjects stampedDetectedObjects : camera.getDetectedObjectsList()) {
+            for (DetectedObject dob : stampedDetectedObjects.getDetectedObjects()) {
+                if (dob.getID() == "ERROR") {
+                    System.out.println("ERROR -"+dob.getDescription());
+                    System.out.println("Camera Sensor with the name"+getName()+" caused the error");
+                    System.out.println("the last detected object caught by the cemra are: ");//להשלים
+                    sendBroadcast(new CrashedBroadcast(getName()));
+                }
             }
         }
+        // לחשוב לשנות לפתרון נאיבי שעובר בלולאה על הרשימה במצלמה
+        List<DetectedObject> nextDetectedObjects = camera.getDetectedObjectsList().get(0).getDetectedObjects();
+        int timeOfDetectedObjects = camera.getDetectedObjectsList().get(0).getTime();
+        if (nextDetectedObjects != null && tick.getCurrentTime() == timeOfDetectedObjects + camera.getFrequency()) {
+            DetectObjectsEvent doe = new DetectObjectsEvent(timeOfDetectedObjects,
+                    nextDetectedObjects);
+            Future<Boolean> future = (Future<Boolean>) sendEvent(doe);
+            lastDetectedObj = nextDetectedObjects;
+            try {
+                if (future.get() == false) {
+                    System.out.println("No LiDar manage to tracked the objects");
+                }
+            } catch (InterruptedException ie) {
+                sendBroadcast(new CrashedBroadcast(getName()));
+            }
+            camera.getDetectedObjectsList().remove(0);
+        }
+
     }
 }

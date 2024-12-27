@@ -1,6 +1,6 @@
 package bgu.spl.mics.application.objects;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -10,21 +10,16 @@ import java.util.List;
 public class Camera {
     private final int id;
     private final int frequency;
-    private String name;
     private STATUS status;
     private List<StampedDetectedObjects> detectedObjectsList; // List of detected objects with timestamps
+    private int numDetectedObjects;
 
-    public Camera(int id, int frequency, String cameraKey, STATUS status) {
+    public Camera(int id, int frequency) {
         this.id = id;
         this.frequency = frequency;
-        this.name = cameraKey;
-        this.status = status;
-        this.detectedObjectsList = new ArrayList<>();
-
-    }
-
-    public String getName() {
-        return name;
+        this.status = STATUS.UP;
+        this.detectedObjectsList = new LinkedList<StampedDetectedObjects>();
+        numDetectedObjects = 0;
     }
 
     public List<StampedDetectedObjects> getDetectedObjectsList() {
@@ -46,6 +41,18 @@ public class Camera {
 
     public void setStatus(STATUS error) {
         this.status = error;
+    }
+
+    public int getID() {
+        return id;
+    }
+
+    public int getNumDetectedObjects() {
+        return numDetectedObjects;
+    }
+
+    public void setNumDetectedObjects(int newNumDetectedObjects) {
+        this.numDetectedObjects = newNumDetectedObjects;
     }
 
 }
