@@ -1,64 +1,73 @@
 package bgu.spl.mics.application.objects;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Holds statistical information about the system's operation.
  * This class aggregates metrics such as the runtime of the system,
- * the number of objects detected and tracked, and the number of landmarks
- * identified.
+ * the number of objects detected and tracked, and the number of landmarks identified.
  */
 public class StatisticalFolder {
-    // TODO: Define fields and methods for statistics tracking.
+    private final AtomicInteger systemRunTime;
+    private final AtomicInteger numDetectedObjects;
+    private final AtomicInteger numTrackedObjects;
+    private final AtomicInteger numLandmarks;
+
+    // Singleton instance
     private static class StatisticalFolderHolder {
         private static final StatisticalFolder instance = new StatisticalFolder();
     }
 
-    // Fields for statistics tracking
-    private int systemRunTime;
-    private int numDetectedObjects;
-    private int numTrackedObjects;
-    private int numLandmarks;
-
+    // Private constructor for singleton pattern
     private StatisticalFolder() {
-        systemRunTime = 0;
-        numDetectedObjects = 0;
-        numTrackedObjects = 0;
-        numLandmarks = 0;
+        this.systemRunTime = new AtomicInteger(0);
+        this.numDetectedObjects = new AtomicInteger(0);
+        this.numTrackedObjects = new AtomicInteger(0);
+        this.numLandmarks = new AtomicInteger(0);
     }
 
+    // Public method to get the singleton instance
     public static StatisticalFolder getInstance() {
         return StatisticalFolderHolder.instance;
     }
 
-    public synchronized void addDetectedObjects(int count) {
-        numDetectedObjects += count;
+    // Update system run time using CAS
+    public void incrementSystemRunTime(int delta) {
+        systemRunTime.addAndGet(delta);
     }
 
-    public synchronized void addSystemRunTime(int runtime) {
-        systemRunTime += runtime;
+    // Get current system run time
+    public int getSystemRunTime() {
+        return systemRunTime.get();
     }
 
-    public synchronized void addTrackedObjects(int count) {
-        numTrackedObjects += count;
+    // Update detected objects count using CAS
+    public void incrementDetectedObjects(int delta) {
+        numDetectedObjects.addAndGet(delta);
     }
 
-    public synchronized void addLandmarks(int count) {
-        numLandmarks += count;
+    // Get current detected objects count
+    public int getNumDetectedObjects() {
+        return numDetectedObjects.get();
     }
 
-    public synchronized int getSystemRunTime() {
-        return systemRunTime;
+    // Update tracked objects count using CAS
+    public void incrementTrackedObjects(int delta) {
+        numTrackedObjects.addAndGet(delta);
     }
 
-    public synchronized int getNumDetectedObjects() {
-        return numDetectedObjects;
+    // Get current tracked objects count
+    public int getNumTrackedObjects() {
+        return numTrackedObjects.get();
     }
 
-    public synchronized int getNumTrackedObjects() {
-        return numTrackedObjects;
+    // Update landmarks count using CAS
+    public void incrementLandmarks(int delta) {
+        numLandmarks.addAndGet(delta);
     }
 
-    public synchronized int getNumLandmarks() {
-        return numLandmarks;
+    // Get current landmarks count
+    public int getNumLandmarks() {
+        return numLandmarks.get();
     }
-
 }

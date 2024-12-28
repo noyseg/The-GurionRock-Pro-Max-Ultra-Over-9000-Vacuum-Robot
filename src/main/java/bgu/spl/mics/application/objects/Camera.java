@@ -12,14 +12,12 @@ public class Camera {
     private final int frequency;
     private STATUS status;
     private List<StampedDetectedObjects> detectedObjectsList; // List of detected objects with timestamps
-    private int numDetectedObjects;
 
     public Camera(int id, int frequency) {
         this.id = id;
         this.frequency = frequency;
         this.status = STATUS.UP;
         this.detectedObjectsList = new LinkedList<StampedDetectedObjects>();
-        numDetectedObjects = 0;
     }
 
     public List<StampedDetectedObjects> getDetectedObjectsList() {
@@ -47,12 +45,5 @@ public class Camera {
         return id;
     }
 
-    public int getNumDetectedObjects() {
-        return numDetectedObjects;
-    }
-
-    public void addNumDetectedObjects(int newNumDetectedObjects) {
-        this.numDetectedObjects += newNumDetectedObjects;
-    }
 
 }
