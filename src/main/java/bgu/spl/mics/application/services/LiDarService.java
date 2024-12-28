@@ -64,7 +64,7 @@ public class LiDarService extends MicroService {
             sendEvent(new TrackedObjectsEvent(lpList.getFirst().getTrackedObjectsEvents(),getName())); // Sends event to fusion slum
             lpList.remove(lpList.getFirst());
         }
-        if (lidarWorker.getLastTrackedObjectList().tick.getCurrentTime().) {
+        if (LiDarDataBase.getInstance(getName()) == tick.getCurrentTime()) {
             
         }
         LidarProcessed lp = new LidarProcessed(tick.getCurrentTime()+lidarWorker.getFrequency(),LiDarDataBase.getInstance())
