@@ -107,7 +107,7 @@ public class CameraService extends MicroService {
         {
             CameraProcessed toLidar = cpList.removeFirst();
             StampedDetectedObjects stampedToLiDar = toLidar.getDetectedObject();
-            DetectObjectsEvent doe = new DetectObjectsEvent(stampedToLiDar, tick.getCurrentTime());
+            DetectObjectsEvent doe = new DetectObjectsEvent(stampedToLiDar, tick.getCurrentTime(),getName());
             Future<Boolean> future = (Future<Boolean>) sendEvent(doe);
             try {
                 if (future.get() == false) {
