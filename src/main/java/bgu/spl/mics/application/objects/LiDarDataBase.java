@@ -5,8 +5,10 @@ import com.google.gson.reflect.TypeToken;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * LiDarDataBase is a singleton class responsible for managing LiDAR data.
@@ -17,12 +19,14 @@ public class LiDarDataBase {
         private static LiDarDataBase Instance = new LiDarDataBase(); 
     }
     private List<StampedCloudPoints> stampedCloudPoints;
+    private Map<objectDataTracker, List<List<Double>>> stampedCloudPointsMap;
 
     /**
      * Private constructor to enforce the Singleton pattern.
      */
     private LiDarDataBase() {
         this.stampedCloudPoints = new LinkedList<StampedCloudPoints>();
+        this.stampedCloudPointsMap = new HashMap<>();
     }
 
     /**
@@ -36,6 +40,12 @@ public class LiDarDataBase {
         synchronized (instance) {
             if (instance.stampedCloudPoints.isEmpty()) { // Data is only read once
                 instance.loadData(filePath);
+                if (!instance.stampedCloudPoints.isEmpty()){
+                    for(StampedCloudPoints scp: instance.stampedCloudPoints){
+                        objectDataTracker key = new objectDataTracker(scp.getId(),scp.getTime());
+                        instance.stampedCloudPointsMap.put(key,scp.getCloudPoints());
+                    }
+                }
             }
         }
         return instance;
@@ -53,7 +63,7 @@ public class LiDarDataBase {
             stampedCloudPoints = gson.fromJson(reader, listType);
         } catch (IOException e) {
             System.err.println("Failed to load LiDAR data: " + e.getMessage());
-            stampedCloudPoints = null;
+            stampedCloudPoints = new LinkedList<StampedCloudPoints>();
         }
     }
 
@@ -64,6 +74,12 @@ public class LiDarDataBase {
      */
     public List<StampedCloudPoints> getStampedCloudPoints() {
         return stampedCloudPoints;
+    }
+
+
+
+    public Map<objectDataTracker, List<List<Double>>>  getstampedCloudPointsMap() {
+        return stampedCloudPointsMap;
     }
 }
 

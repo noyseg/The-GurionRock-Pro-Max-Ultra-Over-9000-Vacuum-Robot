@@ -59,7 +59,7 @@ public class CameraService extends MicroService {
         subscribeBroadcast(TerminatedBroadcast.class, terminate -> {
             if (terminate.getSenderId().equals("TimeService")) {
                 camera.setStatus(STATUS.DOWN);
-                sendBroadcast(new TerminatedBroadcast(getName(), camera.getNumDetectedObjects()));
+                sendBroadcast(new TerminatedBroadcast(getName()));
                 terminate();
             }
         });
@@ -67,7 +67,7 @@ public class CameraService extends MicroService {
         // Handle CrashedBroadcast (if needed)
         subscribeBroadcast(CrashedBroadcast.class, crash -> {
             camera.setStatus(STATUS.DOWN);
-            sendBroadcast(new TerminatedBroadcast(getName(), camera.getNumDetectedObjects()));
+            sendBroadcast(new TerminatedBroadcast(getName()));
             // Print the most recent detectedObjects for the current camera
 
         });
@@ -112,7 +112,7 @@ public class CameraService extends MicroService {
             try {
                 if (future.get() == false) {
                     System.out.println("No LiDar manage to tracked the objects");
-                    sendBroadcast(new TerminatedBroadcast(getName(), camera.getNumDetectedObjects()));
+                    sendBroadcast(new TerminatedBroadcast(getName()));
                     terminate();
                 }
             } catch (Exception e) {
@@ -124,7 +124,7 @@ public class CameraService extends MicroService {
         // if camera is empty --- לבדוק אם קורה בזמן הנוכחי או בזמן הבא
         if (camera.getDetectedObjectsList().isEmpty()) {
             camera.setStatus(STATUS.DOWN);
-            sendBroadcast(new TerminatedBroadcast(getName(), camera.getNumDetectedObjects()));
+            sendBroadcast(new TerminatedBroadcast(getName()));
             terminate();
         }
 
