@@ -2,6 +2,7 @@ package bgu.spl.mics.application.services;
 
 import java.util.LinkedList;
 
+import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.objects.*;
@@ -16,7 +17,7 @@ import bgu.spl.mics.application.objects.*;
  */
 public class LiDarService extends MicroService {
     private final LiDarWorkerTracker lidarWorker;
-    private final LinkedList<LidarProcessed> lpList;
+    private final LinkedList<LidarProcessed> lidarProccessedList;
 
     /**
      * Constructor for LiDarService.
@@ -26,7 +27,7 @@ public class LiDarService extends MicroService {
     public LiDarService(LiDarWorkerTracker LiDarWorkerTracker) {
         super("Lidar" + LiDarWorkerTracker.getId());
         this.lidarWorker = LiDarWorkerTracker;
-        this.lpList = new LinkedList<LidarProcessed>();
+        this.lidarProccessedList = new LinkedList<LidarProcessed>();
     }
 
     /**
@@ -42,6 +43,7 @@ public class LiDarService extends MicroService {
         });
 
         subscribeBroadcast(TickBroadcast.class, tick -> {
+            if (lidarWorker.getStatus() == STATUS.UP)
             processTick(tick);
         });
 
@@ -60,14 +62,20 @@ public class LiDarService extends MicroService {
     
 
     private void processTick(TickBroadcast tick){
-        if(lpList.getFirst() != null && lpList.getFirst().getProcessionTime() == tick.getCurrentTime()){
-            sendEvent(new TrackedObjectsEvent(lpList.getFirst().getTrackedObjectsEvents(),getName())); // Sends event to fusion slum
-            lpList.remove(lpList.getFirst());
+        if(lidarProccessedList.getFirst() != null && lidarProccessedList.getFirst().getProcessionTime() >= tick.getCurrentTime()){
+            TrackedObjectsEvent tracked = new TrackedObjectsEvent(lidarProccessedList.getFirst().getTrackedObjectsEvents(),getName()); // Sends event to fusion slum
+            Future<Boolean> future = (Future<Boolean>) sendEvent(tracked);
+            lidarProccessedList.remove(lidarProccessedList.getFirst());
+            try {
+                if (future.get() == false) {
+                    System.out.println("Fusion Slum could not handle the tracked objects");
+                    sendBroadcast(new TerminatedBroadcast(getName()));
+                    terminate();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                sendBroadcast(new CrashedBroadcast(getName()));
+            }
         }
-        if (LiDarDataBase.getInstance(getName()) == tick.getCurrentTime()) {
-            
-        }
-        LidarProcessed lp = new LidarProcessed(tick.getCurrentTime()+lidarWorker.getFrequency(),LiDarDataBase.getInstance())
-        lpList.addLast(lp));
     }
 }

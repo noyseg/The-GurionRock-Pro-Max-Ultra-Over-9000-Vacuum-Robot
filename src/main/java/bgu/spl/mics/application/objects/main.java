@@ -11,7 +11,7 @@ import java.util.List;
 public class main {
     public static void main(String[] args) {
         // Path to the JSON file
-        String filePath = "C:\\Users\\n3seg\\OneDrive\\Desktop\\GitHub\\Assignment2\\example_input_2\\lidar_data.json";
+        String filePath = "C:\\Users\\n3seg\\OneDrive\\Desktop\\GitHub\\Assignment2\\example input\\lidar_data.json";
 
         try (FileReader reader = new FileReader(filePath)) {
             Gson gson = new Gson();
