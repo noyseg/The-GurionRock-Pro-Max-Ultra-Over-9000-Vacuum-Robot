@@ -16,7 +16,6 @@ public class LiDarWorkerTracker {
     private final int frequency;
     private STATUS status;
     private List<TrackedObject> lastTrackedObjectList;
-    private int numTrackedObjects; 
     private LiDarDataBase lbd;
 
     public LiDarWorkerTracker(int id , int frequency, String filePath){
@@ -24,7 +23,6 @@ public class LiDarWorkerTracker {
         this.frequency = frequency;
         this.status = STATUS.UP;
         this.lastTrackedObjectList = new ArrayList<TrackedObject>();
-        this.numTrackedObjects = 0;
         this.lbd = LiDarDataBase.getInstance(filePath);
     }
 
@@ -36,14 +34,6 @@ public class LiDarWorkerTracker {
         return this.status;
     } 
 
-    public int getNumTrackedObjects(){
-        return numTrackedObjects;
-    } 
-
-    public void setNumTrackedObjects(int newTickDetection){
-        numTrackedObjects += newTickDetection;
-    }
-
     public int getFrequency(){
         return this.frequency;
     }
@@ -54,6 +44,14 @@ public class LiDarWorkerTracker {
 
     public LiDarDataBase getlLiDarDataBase(){
         return this.lbd;
+    }
+
+    public void setLastTrackedObjectList(List<TrackedObject> trackedObjects) {
+        this.lastTrackedObjectList = trackedObjects;
+    } 
+
+    public void setStatus(STATUS status){
+        this.status = status;
     } 
 
    

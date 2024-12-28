@@ -6,8 +6,8 @@ package bgu.spl.mics.application.objects;
  */
 public class CloudPoint {
 
-    private final double x;
-    private final double y;
+    private final Double x;
+    private final Double y;
 
     /**
      * Constructs a CloudPoint in a 2D space.
@@ -15,7 +15,7 @@ public class CloudPoint {
      * @param x The X-coordinate of the point
      * @param y The Y-coordinate of the point
      */
-    public CloudPoint(double x, double y){
+    public CloudPoint(Double x, Double y){
         this.x = x;
         this.y = y;
     }
@@ -23,14 +23,14 @@ public class CloudPoint {
      /**
      * @return The X-coordinate of the point
      */
-    public double getX(){
+    public Double getX(){
         return this.x;
     }
 
      /**
      * @return The Y-coordinate of the point
      */
-    public double getY(){
+    public Double getY(){
         return this.y;
     }
 }

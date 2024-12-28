@@ -1,7 +1,7 @@
 package bgu.spl.mics.application.services;
 
 import java.util.LinkedList;
-
+import java.util.List;
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.*;
@@ -39,31 +39,30 @@ public class LiDarService extends MicroService {
     protected void initialize() {
         System.out.println("LiDarService " + getName() + " started");
         subscribeEvent(DetectObjectsEvent.class, ev -> { 
-
+            if (lidarWorker.getStatus() == STATUS.UP){
+                processDetectedObjects(ev);
+            }
         });
 
         subscribeBroadcast(TickBroadcast.class, tick -> {
             if (lidarWorker.getStatus() == STATUS.UP)
-            processTick(tick);
+                processTick(tick);
         });
-
         subscribeBroadcast(TerminatedBroadcast.class, Terminated -> {
-
-        }
+        
+        });
         subscribeBroadcast(TerminatedBroadcast.class, Crashed -> {
-
-        }
+            lidarWorker.setStatus(STATUS.DOWN);
+            sendBroadcast(new TerminatedBroadcast(getName())); // Sending error of last tracked
+        });
         // Subscribes to TickBroadcast, TerminatedBroadcast, CrashedBroadcast, DetectObjectsEvent.
     }
-
-    private void processTickDetectObjects(ev){
-
-    }
     
-
     private void processTick(TickBroadcast tick){
-        if(lidarProccessedList.getFirst() != null && lidarProccessedList.getFirst().getProcessionTime() >= tick.getCurrentTime()){
-            TrackedObjectsEvent tracked = new TrackedObjectsEvent(lidarProccessedList.getFirst().getTrackedObjectsEvents(),getName()); // Sends event to fusion slum
+        if(lidarProccessedList.getFirst() != null && lidarProccessedList.getFirst().getProcessionTime() <= tick.getCurrentTime()){
+            List<TrackedObject> trackedObjects = lidarProccessedList.getFirst().getTrackedObjectsEvents();
+            TrackedObjectsEvent tracked = new TrackedObjectsEvent(trackedObjects,getName()); // Sends event to fusion slum
+            StatisticalFolder.getInstance().addTrackedObjects(trackedObjects.size());
             Future<Boolean> future = (Future<Boolean>) sendEvent(tracked);
             lidarProccessedList.remove(lidarProccessedList.getFirst());
             try {
@@ -77,5 +76,29 @@ public class LiDarService extends MicroService {
                 sendBroadcast(new CrashedBroadcast(getName()));
             }
         }
+    }
+
+    private void processDetectedObjects(DetectObjectsEvent ev){
+        StampedDetectedObjects toProcess = ev.getDetectedObjects();
+        List<DetectedObject> detectedObjects = toProcess.getDetectedObjects();
+        List<TrackedObject> trackedObjects = new LinkedList<>();
+        int time = toProcess.getTime();
+        for (DetectedObject doe : detectedObjects){
+            objectDataTracker objData = new objectDataTracker(doe.getID(),time);
+            List<List<Double>> cloupPointsData = lidarWorker.getlLiDarDataBase().getstampedCloudPointsMap().get(objData);
+            CloudPoint[] coordinates  = new CloudPoint[cloupPointsData.size()];
+            int i = 0;
+            for(List<Double> cp :cloupPointsData){
+                CloudPoint point = new CloudPoint(cp.get(0), cp.get(1));
+                coordinates[i] = point;
+                i++; 
+            }
+            TrackedObject trackedO = new TrackedObject(time, doe.getID(), doe.getDescription(), coordinates);
+            trackedObjects.add(trackedO);
+        }
+        lidarWorker.setLastTrackedObjectList(trackedObjects); // if this is what they ment 
+        LidarProcessed lp = new LidarProcessed(toProcess.getTime() + lidarWorker.getFrequency(),trackedObjects);
+        lidarProccessedList.add(lp);
+        complete(ev, true);
     }
 }

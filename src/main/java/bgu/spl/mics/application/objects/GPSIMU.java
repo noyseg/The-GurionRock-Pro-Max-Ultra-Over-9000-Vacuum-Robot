@@ -11,8 +11,34 @@ public class GPSIMU {
     private STATUS status;
     private List<Pose> PoseList;
 
-    public GPSIMU(){
-        
+    public GPSIMU(int currentTick, List<Pose> PoseList){
+        this.currentTick = currentTick;
+        this.status = STATUS.UP;
+        this.PoseList = PoseList;
+    }
+
+    public int getCurrentTime(){
+        return this.currentTick;
+    }
+
+    public STATUS getsStatus(){
+        return this.status;
+    }
+
+    public List<Pose> getPoseList(){
+        return this.PoseList;
+    }
+
+    // public void setCurrentTime(){
+    //     this.currentTick = ;
+    // }
+
+    public void setsStatus(STATUS status){
+        this.status = status;
+    }
+
+    public void setPoseList( List<Pose> PoseList){
+        this.PoseList = PoseList;
     }
 
 }
