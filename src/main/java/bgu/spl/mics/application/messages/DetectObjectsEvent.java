@@ -15,7 +15,7 @@ public class DetectObjectsEvent implements Event<Boolean> {
         this.detectedObjects = detectedObjects;
     }
 
-    public StampedDetectedObjects gDetectedObjects() {
+    public StampedDetectedObjects getDetectedObjects() {
         return detectedObjects;
     }
 

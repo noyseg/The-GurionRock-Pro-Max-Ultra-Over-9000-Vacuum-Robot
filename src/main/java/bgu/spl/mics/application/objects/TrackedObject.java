@@ -14,8 +14,20 @@ public class TrackedObject {
     private String description; 
     private CloudPoint[] coordinates;
     
-    // Defult constructor
-    public TrackedObject(){}
+    /**
+     *
+     * 
+     * @param time The time the object was tracked
+     * @param id The ID of the object
+     * @param description The description of the tracked object
+     * @param coordinates The coordinates of the object
+     */
+    public TrackedObject(int time, String id, String description, CloudPoint[] coordinates) {
+        this.time = time;
+        this.id = id;
+        this.description = description;
+        this.coordinates = coordinates != null ? Arrays.copyOf(coordinates, coordinates.length) : null;
+    }
 
     /**
      * @return The time the object was tracked
@@ -80,7 +92,7 @@ public class TrackedObject {
     * @param cloudPoint the coordinates of the object
      */
     public void setCoordinates(CloudPoint[] cloudPoints){
-        this.coordinates = cloudPoints;
+        this.coordinates = coordinates != null ? Arrays.copyOf(coordinates, coordinates.length) : null;
     }
 
     @Override
