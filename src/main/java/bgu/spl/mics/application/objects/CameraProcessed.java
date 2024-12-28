@@ -4,9 +4,9 @@ import java.util.List;
 
 public class CameraProcessed {
     private final int processionTime;
-    private final List<DetectedObject> detectedObjects;
+    private final StampedDetectedObjects detectedObjects;
 
-    public CameraProcessed(int time,List<DetectedObject> detectedObjects){
+    public CameraProcessed(int time,StampedDetectedObjects detectedObjects){
         this.processionTime=time;
         this.detectedObjects = detectedObjects;
     }
@@ -15,7 +15,7 @@ public class CameraProcessed {
         return processionTime;
     }
 
-    public List<DetectedObject> getDetectedObject(){
+    public StampedDetectedObjects getDetectedObject(){
         return detectedObjects;
     } 
 }

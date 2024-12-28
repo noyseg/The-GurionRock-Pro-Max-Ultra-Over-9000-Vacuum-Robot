@@ -26,7 +26,8 @@ import bgu.spl.mics.example.messages.ExampleBroadcast;
 public class CameraService extends MicroService {
     private final Camera camera;
     private LinkedList<CameraProcessed> cpList; // List of camera data objects (time stamp+freq and detectedObjects)
-    private List<DetectedObject> lastDetectedObj; 
+    // private List<DetectedObject> lastDetectedObj;
+
     /**
      * Constructor for CameraService.
      *
@@ -36,7 +37,7 @@ public class CameraService extends MicroService {
         super("Camera" + camera.getID());
         this.camera = camera;
         this.cpList = new LinkedList<>();
-        lastDetectedObj = new LinkedList<DetectedObject>();
+        // lastDetectedObj = new LinkedList<DetectedObject>();
     }
 
     /**
@@ -56,16 +57,18 @@ public class CameraService extends MicroService {
 
         // Subscribe to TerminateBroadcast to gracefully shut down
         subscribeBroadcast(TerminatedBroadcast.class, terminate -> {
-            camera.setStatus(STATUS.DOWN);
             if (terminate.getSenderId().equals("TimeService")) {
-                sendBroadcast(new TerminatedBroadcast(getName()));
+                camera.setStatus(STATUS.DOWN);
+                sendBroadcast(new TerminatedBroadcast(getName(), camera.getNumDetectedObjects()));
                 terminate();
             }
         });
 
         // Handle CrashedBroadcast (if needed)
         subscribeBroadcast(CrashedBroadcast.class, crash -> {
-            //Print the most recent detectedObjects for the current camera
+            camera.setStatus(STATUS.DOWN);
+            sendBroadcast(new TerminatedBroadcast(getName(), camera.getNumDetectedObjects()));
+            // Print the most recent detectedObjects for the current camera
 
         });
     }
@@ -76,32 +79,53 @@ public class CameraService extends MicroService {
      * @param tick The TickBroadcast containing the current time.
      */
     private void processTick(TickBroadcast tick) {
-        for (StampedDetectedObjects stampedDetectedObjects : camera.getDetectedObjectsList()) {
-            for (DetectedObject dob : stampedDetectedObjects.getDetectedObjects()) {
+        StampedDetectedObjects nextDetectedObjects = camera.getDetectedObjectsList().get(0);
+        int timeOfDetectedObjects = nextDetectedObjects.getTime();
+        if (tick.getCurrentTime() == timeOfDetectedObjects) {
+            for (DetectedObject dob : nextDetectedObjects.getDetectedObjects()) {
                 if (dob.getID() == "ERROR") {
-                    System.out.println("ERROR -"+dob.getDescription());
-                    System.out.println("Camera Sensor with the name"+getName()+" caused the error");
-                    System.out.println("the last detected object caught by the cemra are: ");//להשלים
+                    System.out.println("ERROR -" + dob.getDescription());
+                    System.out.println("Camera Sensor with the name" + getName() + " caused the error");
+                    System.out.println("the last detected object caught by the cemra are: ");// להשלים
+                    camera.setStatus(STATUS.ERROR);
                     sendBroadcast(new CrashedBroadcast(getName()));
+                    terminate();
                 }
             }
+            CameraProcessed dobjWithFreq = new CameraProcessed(tick.getCurrentTime() + camera.getFrequency(),
+                    nextDetectedObjects);
+            cpList.add(dobjWithFreq);
+            camera.addNumDetectedObjects(camera.getDetectedObjectsList().remove(0).getDetectedObjects().size());
         }
         // לחשוב לשנות לפתרון נאיבי שעובר בלולאה על הרשימה במצלמה
-        List<DetectedObject> nextDetectedObjects = camera.getDetectedObjectsList().get(0).getDetectedObjects();
-        int timeOfDetectedObjects = camera.getDetectedObjectsList().get(0).getTime();
-        if (nextDetectedObjects != null && tick.getCurrentTime() == timeOfDetectedObjects + camera.getFrequency()) {
-            DetectObjectsEvent doe = new DetectObjectsEvent(timeOfDetectedObjects,
-                    nextDetectedObjects);
+
+        // lastDetectedObj =
+        // camera.getDetectedObjectsList().get(0).getDetectedObjects();
+        if (cpList.getFirst() != null
+                && cpList.getFirst().getProcessionTime() == tick.getCurrentTime())
+
+        {
+            CameraProcessed toLidar = cpList.removeFirst();
+            StampedDetectedObjects stampedToLiDar = toLidar.getDetectedObject();
+            DetectObjectsEvent doe = new DetectObjectsEvent(stampedToLiDar, tick.getCurrentTime());
             Future<Boolean> future = (Future<Boolean>) sendEvent(doe);
-            lastDetectedObj = nextDetectedObjects;
             try {
                 if (future.get() == false) {
                     System.out.println("No LiDar manage to tracked the objects");
+                    sendBroadcast(new TerminatedBroadcast(getName(), camera.getNumDetectedObjects()));
+                    terminate();
                 }
-            } catch (InterruptedException ie) {
+            } catch (Exception e) {
+                e.printStackTrace();
                 sendBroadcast(new CrashedBroadcast(getName()));
             }
-            camera.getDetectedObjectsList().remove(0);
+        }
+
+        // if camera is empty --- לבדוק אם קורה בזמן הנוכחי או בזמן הבא
+        if (camera.getDetectedObjectsList().isEmpty()) {
+            camera.setStatus(STATUS.DOWN);
+            sendBroadcast(new TerminatedBroadcast(getName(), camera.getNumDetectedObjects()));
+            terminate();
         }
 
     }

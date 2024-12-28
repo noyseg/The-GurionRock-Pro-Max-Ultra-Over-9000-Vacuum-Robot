@@ -51,8 +51,8 @@ public class Camera {
         return numDetectedObjects;
     }
 
-    public void setNumDetectedObjects(int newNumDetectedObjects) {
-        this.numDetectedObjects = newNumDetectedObjects;
+    public void addNumDetectedObjects(int newNumDetectedObjects) {
+        this.numDetectedObjects += newNumDetectedObjects;
     }
 
 }
