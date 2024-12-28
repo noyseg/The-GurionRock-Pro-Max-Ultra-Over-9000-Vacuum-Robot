@@ -1,15 +1,16 @@
 package bgu.spl.mics.application.messages;
 
 import java.util.LinkedList;
+import java.util.List;
 
 import bgu.spl.mics.Event;
 import bgu.spl.mics.application.objects.TrackedObject;
 
 public class TrackedObjectsEvent implements Event<Boolean>{
     private String senderName;
-    private LinkedList<TrackedObject> trackedObjects;
+    private List<TrackedObject> trackedObjects;
 
-    public TrackedObjectsEvent(LinkedList<TrackedObject> trackedObjects, String senderName){
+    public TrackedObjectsEvent(List<TrackedObject> trackedObjects, String senderName){
         this.senderName = senderName;
         this.trackedObjects = trackedObjects;
     }
@@ -18,7 +19,7 @@ public class TrackedObjectsEvent implements Event<Boolean>{
         return this.senderName;
     }
 
-    public LinkedList<TrackedObject> getTrackedObject(){
+    public List<TrackedObject> getTrackedObject(){
         return this.trackedObjects;
     }
 }

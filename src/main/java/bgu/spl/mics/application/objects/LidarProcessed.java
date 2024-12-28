@@ -1,11 +1,12 @@
 package bgu.spl.mics.application.objects;
 import java.util.LinkedList;
+import java.util.List;
 
 public class LidarProcessed {
     private final int processionTime;
-    private final LinkedList<TrackedObject> trackedObjectsEvents;
+    private final List<TrackedObject> trackedObjectsEvents;
 
-    public LidarProcessed(int processionTime, LinkedList<TrackedObject> trackedObjectsEvents){
+    public LidarProcessed(int processionTime, List<TrackedObject> trackedObjectsEvents){
         this.processionTime = processionTime;
         this.trackedObjectsEvents = trackedObjectsEvents;
     }
