@@ -54,7 +54,7 @@ public class PoseService extends MicroService {
     private void processTick(TickBroadcast tick) {
         gpsimu.setCurrentTick(tick.getCurrentTime());
         setPose();
-        PoseEvent poseEvent = new PoseEvent(currentPose);
+        PoseEvent poseEvent = new PoseEvent(currentPose,getName());
         Future<Boolean> future = (Future<Boolean>) sendEvent(poseEvent);
         try {
             if (future.get() == false) {

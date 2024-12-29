@@ -1,5 +1,9 @@
 package bgu.spl.mics.application.services;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
+
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.CrashedBroadcast;
 import bgu.spl.mics.application.messages.PoseEvent;
@@ -7,6 +11,9 @@ import bgu.spl.mics.application.messages.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.messages.TrackedObjectsEvent;
 import bgu.spl.mics.application.objects.FusionSlam;
+import bgu.spl.mics.application.objects.LandMark;
+import bgu.spl.mics.application.objects.Pose;
+import bgu.spl.mics.application.objects.StatisticalFolder;
 import bgu.spl.mics.application.objects.TrackedObject;
 
 /**
@@ -17,7 +24,8 @@ import bgu.spl.mics.application.objects.TrackedObject;
  * transforming and updating the map with new landmarks.
  */
 public class FusionSlamService extends MicroService {
-    
+    private final FusionSlam fusionSlam;
+
     /**
      * Constructor for FusionSlamService.
      *
@@ -25,7 +33,7 @@ public class FusionSlamService extends MicroService {
      */
     public FusionSlamService(FusionSlam fusionSlam) {
         super("FusionSlam");
-        // TODO Implement this
+        this.fusionSlam = fusionSlam;
     }
 
     /**
@@ -35,6 +43,7 @@ public class FusionSlamService extends MicroService {
      */
     @Override
     protected void initialize() {
+        
         System.out.println(getName() + " started");
         subscribeBroadcast(TickBroadcast.class, tick -> {
 
