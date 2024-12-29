@@ -2,6 +2,9 @@ package bgu.spl.mics.application.objects;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import bgu.spl.mics.MicroService;
 
 /**
  * Manages the fusion of sensor data for simultaneous localization and mapping (SLAM).
@@ -11,18 +14,35 @@ import java.util.List;
 public class FusionSlam {
     // Singleton instance holder
     private static class FusionSlamHolder {
-        private static instance = new FusionSlam();
+        private static FusionSlam instance = new FusionSlam();
     }
         private final List<LandMark> landMarks;
         private final List<Pose> poses;
-        private StatisticalFolder statisticalFolder;
+        private final StatisticalFolder statisticalFolder;
+        private AtomicInteger microservicesCounter;
 
-        public FusionSlam(){
-            this.landMarks = new LinkedList<>();
-            this.poses = new LinkedList<>();
-            this. 
+        private FusionSlam(){
+            this.landMarks = new LinkedList<LandMark>();
+            this.poses = new LinkedList<Pose>();
+            this.statisticalFolder = StatisticalFolder.getInstance();
+            this.microservicesCounter =new AtomicInteger(0);
         }
 
+        public static FusionSlam getInstance(){
+            return FusionSlamHolder.instance;
+        }
 
-    }
+        
+
+        // normal term:
+        // statisticalFolder
+        // landmark
+
+
+        // error :
+        // error description 
+        // sender of crashed 
+        // last frames 
+        // poses
+        // statisticalFolder
 }

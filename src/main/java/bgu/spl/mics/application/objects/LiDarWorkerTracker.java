@@ -3,6 +3,7 @@ package bgu.spl.mics.application.objects;
 import java.io.ObjectInputFilter.Status;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -22,7 +23,7 @@ public class LiDarWorkerTracker {
         this.id = id;
         this.frequency = frequency;
         this.status = STATUS.UP;
-        this.lastTrackedObjectList = new ArrayList<TrackedObject>();
+        this.lastTrackedObjectList = new LinkedList<TrackedObject>();
         this.lbd = LiDarDataBase.getInstance(filePath);
     }
 
