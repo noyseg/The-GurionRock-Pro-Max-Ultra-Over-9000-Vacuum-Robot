@@ -62,7 +62,7 @@ public class LiDarService extends MicroService {
         if(lidarProccessedList.getFirst() != null && lidarProccessedList.getFirst().getProcessionTime() <= tick.getCurrentTime()){
             List<TrackedObject> trackedObjects = lidarProccessedList.getFirst().getTrackedObjectsEvents();
             TrackedObjectsEvent tracked = new TrackedObjectsEvent(trackedObjects,getName()); // Sends event to fusion slum
-            StatisticalFolder.getInstance().addTrackedObjects(trackedObjects.size());
+            StatisticalFolder.getInstance().incrementTrackedObjects(trackedObjects.size());
             Future<Boolean> future = (Future<Boolean>) sendEvent(tracked);
             lidarProccessedList.remove(lidarProccessedList.getFirst());
             try {
