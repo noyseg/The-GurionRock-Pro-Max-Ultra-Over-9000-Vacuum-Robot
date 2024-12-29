@@ -7,22 +7,22 @@ import bgu.spl.mics.application.objects.DetectedObject;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
 
 public class DetectObjectsEvent implements Event<Boolean> {
-    private final int timeOfSendingEvent;
+    private final int timeOfDetectedObjects;
     private final StampedDetectedObjects detectedObjects;
     private String senderName;
 
     public DetectObjectsEvent(StampedDetectedObjects detectedObjects, int time,String name) {
-        this.timeOfSendingEvent = time;
+        this.timeOfDetectedObjects = time;
         this.detectedObjects = detectedObjects;
         this.senderName = name;
     }
 
-    public StampedDetectedObjects getDetectedObjects() {
+    public StampedDetectedObjects getStampedDetectedObjects() {
         return detectedObjects;
     }
 
-    public int getTime() {
-        return timeOfSendingEvent;
+    public int getTimeOfDetectedObjects() {
+        return timeOfDetectedObjects;
     }
 
     public String getSenderName() {

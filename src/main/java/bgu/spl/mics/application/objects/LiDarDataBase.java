@@ -19,7 +19,7 @@ public class LiDarDataBase {
         private static LiDarDataBase Instance = new LiDarDataBase(); 
     }
     private List<StampedCloudPoints> stampedCloudPoints;
-    private Map<objectDataTracker, List<List<Double>>> stampedCloudPointsMap;
+    private Map<ObjectDataTracker, List<List<Double>>> stampedCloudPointsMap;
 
     /**
      * Private constructor to enforce the Singleton pattern.
@@ -42,7 +42,7 @@ public class LiDarDataBase {
                 instance.loadData(filePath);
                 if (!instance.stampedCloudPoints.isEmpty()){
                     for(StampedCloudPoints scp: instance.stampedCloudPoints){
-                        objectDataTracker key = new objectDataTracker(scp.getId(),scp.getTime());
+                        ObjectDataTracker key = new ObjectDataTracker(scp.getId(),scp.getTime());
                         instance.stampedCloudPointsMap.put(key,scp.getCloudPoints());
                     }
                 }
@@ -78,7 +78,7 @@ public class LiDarDataBase {
 
 
 
-    public Map<objectDataTracker, List<List<Double>>>  getstampedCloudPointsMap() {
+    public Map<ObjectDataTracker, List<List<Double>>>  getstampedCloudPointsMap() {
         return stampedCloudPointsMap;
     }
 }

@@ -64,4 +64,11 @@ public class FusionSlamService extends MicroService {
 
         // Subscribes to TickBroadcast, TrackedObjectsEvent, PoseEvent, TerminatedBroadcast,CrashedBroadcast
     }
+
+    private void handleLandMarks(trackedObj){
+        TrackedObject trackedObjects = trackedObj.getTrackedObjects();
+        for (TrackedObject to: trackedObjects){
+            
+        }
+    }
 }

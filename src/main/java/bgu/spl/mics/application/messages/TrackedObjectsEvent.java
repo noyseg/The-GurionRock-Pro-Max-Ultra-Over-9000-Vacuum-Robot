@@ -19,7 +19,7 @@ public class TrackedObjectsEvent implements Event<Boolean>{
         return this.senderName;
     }
 
-    public List<TrackedObject> getTrackedObject(){
+    public List<TrackedObject> getTrackedObjects(){
         return this.trackedObjects;
     }
 }

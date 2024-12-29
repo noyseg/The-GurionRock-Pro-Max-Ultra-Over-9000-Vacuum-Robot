@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.objects;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -16,23 +17,50 @@ public class FusionSlam {
     private static class FusionSlamHolder {
         private static FusionSlam instance = new FusionSlam();
     }
-        private final List<LandMark> landMarks;
-        private final List<Pose> poses;
-        private final StatisticalFolder statisticalFolder;
-        private AtomicInteger microservicesCounter;
+    private final HashMap<String,LandMark> landMarks;
+    private final List<Pose> poses;
+    private final StatisticalFolder statisticalFolder;
+    private AtomicInteger microservicesCounter;
 
-        private FusionSlam(){
-            this.landMarks = new LinkedList<LandMark>();
-            this.poses = new LinkedList<Pose>();
-            this.statisticalFolder = StatisticalFolder.getInstance();
-            this.microservicesCounter =new AtomicInteger(0);
-        }
+    private FusionSlam(){
+        this.landMarks = new HashMap<String,LandMark>();
+        this.poses = new LinkedList<Pose>();
+        this.statisticalFolder = StatisticalFolder.getInstance();
+        this.microservicesCounter =new AtomicInteger(0);
+    }
 
-        public static FusionSlam getInstance(){
-            return FusionSlamHolder.instance;
-        }
+    public static FusionSlam getInstance(){
+        return FusionSlamHolder.instance;
+    }
+
+         // Methods for Microservices Count:
+    /**
+     * Increments the count of active microservices.
+     */
+    public void incrementMicroserviceCount() {
+        microservicesCounter.incrementAndGet();
+    }
+
+    /**
+     * Decrements the count of active microservices.
+     */
+    public void decrementMicroserviceCount() {
+        microservicesCounter.decrementAndGet();
+    }
+
+    
+
+    public void addeLandMark(){
 
         
+    }
+    
+
+
+    public void updateLandMark(){
+
+    }
+
 
         // normal term:
         // statisticalFolder

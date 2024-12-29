@@ -1,10 +1,10 @@
 package bgu.spl.mics.application.objects;
 
-public class objectDataTracker {
+public class ObjectDataTracker {
     private String id; 
     private int time;
 
-    public objectDataTracker(String id, int time){
+    public ObjectDataTracker(String id, int time){
         this.id = id;
         this.time = time;
     }

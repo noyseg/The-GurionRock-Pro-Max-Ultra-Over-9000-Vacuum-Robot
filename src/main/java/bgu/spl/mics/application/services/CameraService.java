@@ -81,6 +81,7 @@ public class CameraService extends MicroService {
     private void processTick(TickBroadcast tick) {
         StampedDetectedObjects nextDetectedObjects = camera.getDetectedObjectsList().get(0);
         int timeOfDetectedObjects = nextDetectedObjects.getTime();
+        // Proccesing the images that the camera detect in current time, if exist. 
         if (tick.getCurrentTime() == timeOfDetectedObjects) {
             for (DetectedObject dob : nextDetectedObjects.getDetectedObjects()) {
                 if (dob.getID() == "ERROR") {
@@ -107,7 +108,7 @@ public class CameraService extends MicroService {
         {
             CameraProcessed toLidar = cpList.removeFirst();
             StampedDetectedObjects stampedToLiDar = toLidar.getDetectedObject();
-            DetectObjectsEvent doe = new DetectObjectsEvent(stampedToLiDar, tick.getCurrentTime(),getName());
+            DetectObjectsEvent doe = new DetectObjectsEvent(stampedToLiDar, stampedToLiDar.getTime() ,getName());
             Future<Boolean> future = (Future<Boolean>) sendEvent(doe);
             try {
                 if (future.get() == false) {
