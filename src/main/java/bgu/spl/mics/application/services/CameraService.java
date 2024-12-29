@@ -3,6 +3,7 @@ package bgu.spl.mics.application.services;
 import java.util.LinkedList;
 import java.util.List;
 
+import bgu.spl.mics.application.objects.StatisticalFolder;
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.CrashedBroadcast;
@@ -14,7 +15,6 @@ import bgu.spl.mics.application.objects.CameraProcessed;
 import bgu.spl.mics.application.objects.DetectedObject;
 import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
-import bgu.spl.mics.application.objects.StatisticalFolder;
 import bgu.spl.mics.example.messages.ExampleBroadcast;
 
 /**
@@ -70,7 +70,6 @@ public class CameraService extends MicroService {
             camera.setStatus(STATUS.DOWN);
             sendBroadcast(new TerminatedBroadcast(getName()));
             // Print the most recent detectedObjects for the current camera
-
         });
     }
 
@@ -96,7 +95,7 @@ public class CameraService extends MicroService {
             CameraProcessed dobjWithFreq = new CameraProcessed(tick.getCurrentTime() + camera.getFrequency(),
                     nextDetectedObjects);
             cpList.add(dobjWithFreq);
-            StatisticalFolder.getInstance().addDetectedObjects(camera.getDetectedObjectsList().remove(0).getDetectedObjects().size());
+            StatisticalFolder.getInstance().incrementDetectedObjects(camera.getDetectedObjectsList().remove(0).getDetectedObjects().size());
         }
         // לחשוב לשנות לפתרון נאיבי שעובר בלולאה על הרשימה במצלמה
 

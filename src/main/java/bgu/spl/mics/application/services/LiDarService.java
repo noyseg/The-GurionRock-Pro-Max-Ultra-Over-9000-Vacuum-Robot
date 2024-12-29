@@ -38,6 +38,8 @@ public class LiDarService extends MicroService {
     @Override
     protected void initialize() {
         System.out.println("LiDarService " + getName() + " started");
+
+        /// What should be first?? tick or event
         subscribeEvent(DetectObjectsEvent.class, ev -> { 
             if (lidarWorker.getStatus() == STATUS.UP){
                 processDetectedObjects(ev);
@@ -62,7 +64,7 @@ public class LiDarService extends MicroService {
         if(lidarProccessedList.getFirst() != null && lidarProccessedList.getFirst().getProcessionTime() <= tick.getCurrentTime()){
             List<TrackedObject> trackedObjects = lidarProccessedList.getFirst().getTrackedObjectsEvents();
             TrackedObjectsEvent tracked = new TrackedObjectsEvent(trackedObjects,getName()); // Sends event to fusion slum
-            StatisticalFolder.getInstance().addTrackedObjects(trackedObjects.size());
+            StatisticalFolder.getInstance().incrementTrackedObjects(trackedObjects.size());
             Future<Boolean> future = (Future<Boolean>) sendEvent(tracked);
             lidarProccessedList.remove(lidarProccessedList.getFirst());
             try {
@@ -86,12 +88,11 @@ public class LiDarService extends MicroService {
         for (DetectedObject doe : detectedObjects){
             objectDataTracker objData = new objectDataTracker(doe.getID(),time);
             List<List<Double>> cloupPointsData = lidarWorker.getlLiDarDataBase().getstampedCloudPointsMap().get(objData);
-            CloudPoint[] coordinates  = new CloudPoint[cloupPointsData.size()];
+            List<CloudPoint> coordinates  = new LinkedList<>();
             int i = 0;
             for(List<Double> cp :cloupPointsData){
                 CloudPoint point = new CloudPoint(cp.get(0), cp.get(1));
-                coordinates[i] = point;
-                i++; 
+                coordinates.add(point);
             }
             TrackedObject trackedO = new TrackedObject(time, doe.getID(), doe.getDescription(), coordinates);
             trackedObjects.add(trackedO);

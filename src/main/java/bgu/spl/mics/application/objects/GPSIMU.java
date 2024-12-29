@@ -29,9 +29,9 @@ public class GPSIMU {
         return this.PoseList;
     }
 
-    // public void setCurrentTime(){
-    //     this.currentTick = ;
-    // }
+    public void setCurrentTick(int updateTick){
+         this.currentTick = updateTick;
+    }
 
     public void setsStatus(STATUS status){
         this.status = status;
@@ -39,6 +39,10 @@ public class GPSIMU {
 
     public void setPoseList( List<Pose> PoseList){
         this.PoseList = PoseList;
+    }
+
+    public Pose getPose(){
+        return this.PoseList.get(currentTick-1);
     }
 
 }
