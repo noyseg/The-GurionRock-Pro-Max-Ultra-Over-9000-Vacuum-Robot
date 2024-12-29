@@ -19,6 +19,4 @@ public class LidarProcessed {
     public LinkedList<TrackedObject> getTrackedObjectsEvents(){
         return this.getTrackedObjectsEvents();
     }
-
-
 }
