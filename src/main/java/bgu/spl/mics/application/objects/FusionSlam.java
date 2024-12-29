@@ -32,6 +32,18 @@ public class FusionSlam {
             return FusionSlamHolder.instance;
         }
 
+        public CloudPoint poseTranformation(Pose robotPosition,float xDetected,float yDetected){
+            double xRobot = robotPosition.getX();
+            double yRobot = robotPosition.getY();
+            double radians = robotPosition.getYaw()*Math.PI/180;
+            double cos = Math.cos(radians);
+            double sin = Math.sin(radians);
+            double xCloudPoint = (cos*xDetected)-(sin*yDetected)+xRobot;
+            double yCloudPoint = (sin*xDetected)+(cos*yDetected)+yRobot;
+            CloudPoint newCloudPoint = new CloudPoint(xCloudPoint,yCloudPoint);
+            return newCloudPoint;
+        }
+
         
 
         // normal term:
@@ -46,3 +58,5 @@ public class FusionSlam {
         // poses
         // statisticalFolder
 }
+
+

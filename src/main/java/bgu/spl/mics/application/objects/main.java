@@ -35,5 +35,20 @@ public class main {
         } catch (IOException e) {
             System.err.println("Error reading file: " + e.getMessage());
         }
+        // Define a Pose (robot's position and orientation)
+        // Pose robotPose = new Pose(10.0f, 5.0f, 45.0f, 1); // x = 10, y = 5, yaw = 45 degrees, time = 1
+        
+        // // Define detected object's local coordinates relative to the robot
+        // float xDetected = 3.0f; // Local x-coordinate
+        // float yDetected = 4.0f; // Local y-coordinate
+        
+        // // Create an instance of FusionSlam (assumes it's a singleton)
+        // FusionSlam fusionSlam = FusionSlam.getInstance();
+        
+        // // Perform the pose transformation
+        // CloudPoint transformedPoint = fusionSlam.poseTranformation(robotPose, xDetected, yDetected);
+        
+        // // Output the result
+        // System.out.println("Transformed CloudPoint: " + transformedPoint);
     }
 }

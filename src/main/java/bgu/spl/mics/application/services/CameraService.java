@@ -27,7 +27,7 @@ import bgu.spl.mics.example.messages.ExampleBroadcast;
 public class CameraService extends MicroService {
     private final Camera camera;
     private LinkedList<CameraProcessed> cpList; // List of camera data objects (time stamp+freq and detectedObjects)
-    // private List<DetectedObject> lastDetectedObj;
+    private List<DetectedObject> lastDetectedObj;
 
     /**
      * Constructor for CameraService.
@@ -38,7 +38,7 @@ public class CameraService extends MicroService {
         super("Camera" + camera.getID());
         this.camera = camera;
         this.cpList = new LinkedList<>();
-        // lastDetectedObj = new LinkedList<DetectedObject>();
+        lastDetectedObj = new LinkedList<DetectedObject>();
     }
 
     /**
@@ -95,6 +95,7 @@ public class CameraService extends MicroService {
             CameraProcessed dobjWithFreq = new CameraProcessed(tick.getCurrentTime() + camera.getFrequency(),
                     nextDetectedObjects);
             cpList.add(dobjWithFreq);
+            lastDetectedObj = camera.getDetectedObjectsList().get(0).getDetectedObjects();
             StatisticalFolder.getInstance().incrementDetectedObjects(camera.getDetectedObjectsList().remove(0).getDetectedObjects().size());
         }
         // לחשוב לשנות לפתרון נאיבי שעובר בלולאה על הרשימה במצלמה

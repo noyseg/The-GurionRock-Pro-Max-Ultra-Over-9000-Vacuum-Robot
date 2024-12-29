@@ -33,4 +33,11 @@ public class CloudPoint {
     public Double getY(){
         return this.y;
     }
+
+    public String toString() {
+        return "CloudPoint{" +
+                "x=" + x +
+                ", y=" + y +
+                '}';
+    }
 }
