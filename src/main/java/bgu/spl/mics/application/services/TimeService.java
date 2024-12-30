@@ -37,7 +37,10 @@ public class TimeService extends MicroService {
     @Override
     protected void initialize() {
 
-        subscribeBroadcast(TerminatedBroadcast.class, broadcast -> terminate());
+        subscribeBroadcast(TerminatedBroadcast.class, terminated -> {
+            if (terminated.getSenderName() == "FusionSlam"){
+                terminate();
+            }});
 
         subscribeBroadcast(CrashedBroadcast.class, crash -> {
             sendBroadcast(new TerminatedBroadcast(getName()));
