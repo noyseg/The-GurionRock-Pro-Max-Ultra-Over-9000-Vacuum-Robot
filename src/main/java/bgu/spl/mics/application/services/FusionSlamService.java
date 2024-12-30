@@ -30,7 +30,7 @@ import bgu.spl.mics.application.objects.TrackedObject;
 public class FusionSlamService extends MicroService {
     private final FusionSlam fusionSlam;
     private boolean isTimeServiceOver;
-    private HashMap<> currentPose;
+//    private HashMap<> currentPose;
 
     /**
      * Constructor for FusionSlamService.
@@ -104,19 +104,19 @@ public class FusionSlamService extends MicroService {
     }
 
     private void updateLandMarks(TrackedObjectsEvent trackedObj){
-        List<TrackedObject> trackedObjects = trackedObj.getTrackedObjects();
-        for (TrackedObject trackO: trackedObjects){
-            List<CloudPoint> globaCloudPoints = fusionSlam.poseTranformation(currentPose, trackO.getCoordinates());
-            // Adding New LandMark
-            if (fusionSlam.getLandMarks().get(trackO.getId()) == null){
-                LandMark newLandMark = new LandMark(trackO.getId(), trackO.getDescription(), globaCloudPoints);
-                fusionSlam.addLandMark(newLandMark);
-                fusionSlam.getLandMarks().put(newLandMark.getId(), newLandMark);
-            } 
-            // Improving Coordinates 
-            else{
-                fusionSlam.updateLandMark(fusionSlam.getLandMarks().get(trackO.getId()),globaCloudPoints);
-            }
-        }
+//        List<TrackedObject> trackedObjects = trackedObj.getTrackedObjects();
+//        for (TrackedObject trackO: trackedObjects){
+//            List<CloudPoint> globaCloudPoints = fusionSlam.poseTranformation(currentPose, trackO.getCoordinates());
+//            // Adding New LandMark
+//            if (fusionSlam.getLandMarks().get(trackO.getId()) == null){
+//                LandMark newLandMark = new LandMark(trackO.getId(), trackO.getDescription(), globaCloudPoints);
+//                fusionSlam.addLandMark(newLandMark);
+//                fusionSlam.getLandMarks().put(newLandMark.getId(), newLandMark);
+//            }
+//            // Improving Coordinates
+//            else{
+//                fusionSlam.updateLandMark(fusionSlam.getLandMarks().get(trackO.getId()),globaCloudPoints);
+//            }
+//        }
     }
 }

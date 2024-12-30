@@ -24,8 +24,8 @@ public class TimeService extends MicroService {
      */
     public TimeService(int TickTime, int Duration) {
         super("TimeService");
-        this.tickTime = tickTime;
-        this.duration = duration;
+        this.tickTime = TickTime;
+        this.duration = Duration;
         this.currentTick = 0;
     }
 

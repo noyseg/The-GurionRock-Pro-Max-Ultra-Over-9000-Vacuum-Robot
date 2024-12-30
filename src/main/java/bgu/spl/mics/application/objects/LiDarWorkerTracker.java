@@ -1,6 +1,5 @@
 package bgu.spl.mics.application.objects;
 
-import java.io.ObjectInputFilter.Status;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.LinkedList;

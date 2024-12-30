@@ -32,7 +32,7 @@ public class LiDarService extends MicroService {
     public LiDarService(LiDarWorkerTracker LiDarWorkerTracker) {
         super("Lidar" + LiDarWorkerTracker.getId());
         this.lidarWorker = LiDarWorkerTracker;
-        this.eventsToProcess = new PriorityQueue<>(Comparator.comparingInt(DetectObjectsEvent::getTimeOfDetectedObjects);
+        this.eventsToProcess = new PriorityQueue<>(Comparator.comparingInt(DetectObjectsEvent::getTimeOfDetectedObjects));
         this.trackedObjects = new LinkedList<>();
     }
 
@@ -48,7 +48,7 @@ public class LiDarService extends MicroService {
         /// What should be first?? tick or event
         subscribeEvent(DetectObjectsEvent.class, ev -> { 
             if (lidarWorker.getStatus() == STATUS.UP){
-                if (ev.getTimeOfDetectedObjects() + lidarWorker.getFrequency() > )
+//                if (ev.getTimeOfDetectedObjects() + lidarWorker.getFrequency() > )
             }
         });
 

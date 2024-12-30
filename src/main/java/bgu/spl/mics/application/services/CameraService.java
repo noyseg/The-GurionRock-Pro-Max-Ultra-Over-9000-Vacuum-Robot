@@ -58,7 +58,7 @@ public class CameraService extends MicroService {
 
         // Subscribe to TerminateBroadcast to gracefully shut down
         subscribeBroadcast(TerminatedBroadcast.class, terminate -> {
-            if (terminate.getSenderId().equals("TimeService")) {
+            if (terminate.getSenderName().equals("TimeService")) {
                 camera.setStatus(STATUS.DOWN);
                 sendBroadcast(new TerminatedBroadcast(getName()));
                 terminate();
