@@ -50,9 +50,13 @@ public class LiDarService extends MicroService {
         
         subscribeEvent(DetectObjectsEvent.class, ev -> { 
             if (lidarWorker.getStatus() == STATUS.UP){
+<<<<<<< HEAD
                 if (ev.getTimeOfDetectedObjects() + lidarWorker.getFrequency() <= currentTick){
                     processDetectedObjects(ev);
                 }
+=======
+//                if (ev.getTimeOfDetectedObjects() + lidarWorker.getFrequency() > )
+>>>>>>> 843ce00044092391a481f7efe6aff0d4fee2054a
             }
         });
 
