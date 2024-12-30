@@ -44,6 +44,7 @@ public class PoseService extends MicroService {
             sendBroadcast(new TerminatedBroadcast(getName(),getName()));
             // Print the most recent poses? for the current camera
         });
+        /// How we stop pose??
 
     }
 

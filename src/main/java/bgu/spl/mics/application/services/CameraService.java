@@ -15,6 +15,7 @@ import bgu.spl.mics.application.objects.CameraProcessed;
 import bgu.spl.mics.application.objects.DetectedObject;
 import bgu.spl.mics.application.objects.ErrorCoordinator;
 import bgu.spl.mics.application.objects.LastFrameCamera;
+import bgu.spl.mics.application.objects.LastFrameLidar;
 import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
 import bgu.spl.mics.example.messages.ExampleBroadcast;
@@ -30,6 +31,7 @@ public class CameraService extends MicroService {
     private final Camera camera;
     private LinkedList<CameraProcessed> cpList; // List of camera data objects (time stamp+freq and detectedObjects)
     private List<DetectedObject> lastDetectedObj;
+    private int lastDetectedObjTime;
 
     /**
      * Constructor for CameraService.
@@ -71,6 +73,9 @@ public class CameraService extends MicroService {
         subscribeBroadcast(CrashedBroadcast.class, crash -> {
             camera.setStatus(STATUS.DOWN);
             sendBroadcast(new TerminatedBroadcast(getName(),camera.getName()));
+            LastFrameCamera lf = new LastFrameCamera(getName(), lastDetectedObjTime, lastDetectedObj);
+            ErrorCoordinator.getInstance().setLastFramesCameras(lf);
+            terminate();
             // Print the most recent detectedObjects for the current camera
         });
     }
@@ -92,7 +97,8 @@ public class CameraService extends MicroService {
                     System.out.println("the last detected object caught by the cemra are: ");// להשלים
                     camera.setStatus(STATUS.ERROR);
                     sendBroadcast(new CrashedBroadcast(getName(),camera.getName()));
-                    LastFrameCamera lf = new LastFrameCamera(getName(),tick.getCurrentTime(),lastDetectedObj);
+                    lastDetectedObjTime = tick.getCurrentTime();
+                    LastFrameCamera lf = new LastFrameCamera(getName(),lastDetectedObjTime ,lastDetectedObj);
                     ErrorCoordinator.getInstance().setLastFramesCameras(lf);
                     ErrorCoordinator.getInstance().setCrashed(getName(), tick.getCurrentTime(), camera.getName());
                     terminate();
@@ -102,6 +108,7 @@ public class CameraService extends MicroService {
                     nextDetectedObjects);
             cpList.add(dobjWithFreq);
             lastDetectedObj = camera.getDetectedObjectsList().get(0).getDetectedObjects();
+            lastDetectedObjTime = tick.getCurrentTime();
             StatisticalFolder.getInstance().incrementDetectedObjects(camera.getDetectedObjectsList().remove(0).getDetectedObjects().size());
         }
         // לחשוב לשנות לפתרון נאיבי שעובר בלולאה על הרשימה במצלמה
