@@ -2,14 +2,18 @@ package bgu.spl.mics.application.services;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import bgu.spl.mics.Broadcast;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.CrashedBroadcast;
 import bgu.spl.mics.application.messages.PoseEvent;
 import bgu.spl.mics.application.messages.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.messages.TrackedObjectsEvent;
+import bgu.spl.mics.application.objects.CloudPoint;
 import bgu.spl.mics.application.objects.FusionSlam;
 import bgu.spl.mics.application.objects.LandMark;
 import bgu.spl.mics.application.objects.Pose;
@@ -25,6 +29,7 @@ import bgu.spl.mics.application.objects.TrackedObject;
  */
 public class FusionSlamService extends MicroService {
     private final FusionSlam fusionSlam;
+    private HashMap<> currentPose;
 
     /**
      * Constructor for FusionSlamService.
@@ -34,6 +39,7 @@ public class FusionSlamService extends MicroService {
     public FusionSlamService(FusionSlam fusionSlam) {
         super("FusionSlam");
         this.fusionSlam = fusionSlam;
+        this.currentPose = null; // ????????????
     }
 
     /**
@@ -47,9 +53,9 @@ public class FusionSlamService extends MicroService {
         System.out.println(getName() + " started");
         subscribeBroadcast(TickBroadcast.class, tick -> {
 
-
         });
         subscribeEvent(TrackedObjectsEvent.class, trackedObj -> { 
+            updateLandMarks(trackedObj);
 
         });
         subscribeEvent(PoseEvent.class, pose -> { 
@@ -65,10 +71,25 @@ public class FusionSlamService extends MicroService {
         // Subscribes to TickBroadcast, TrackedObjectsEvent, PoseEvent, TerminatedBroadcast,CrashedBroadcast
     }
 
-    private void handleLandMarks(trackedObj){
-        TrackedObject trackedObjects = trackedObj.getTrackedObjects();
-        for (TrackedObject to: trackedObjects){
-            
+    private void processTick(TickBroadcast tick){
+        StatisticalFolder.getInstance().incrementSystemRunTime(1);
+
+    }
+
+    private void updateLandMarks(TrackedObjectsEvent trackedObj){
+        List<TrackedObject> trackedObjects = trackedObj.getTrackedObjects();
+        for (TrackedObject trackO: trackedObjects){
+            List<CloudPoint> globaCloudPoints = fusionSlam.poseTranformation(currentPose, trackO.getCoordinates());
+            // Adding New LandMark
+            if (fusionSlam.getLandMarks().get(trackO.getId()) == null){
+                LandMark newLandMark = new LandMark(trackO.getId(), trackO.getDescription(), globaCloudPoints);
+                fusionSlam.addLandMark(newLandMark);
+                fusionSlam.getLandMarks().put(newLandMark.getId(), newLandMark);
+            } 
+            // Improving Coordinates 
+            else{
+                fusionSlam.updateLandMark(fusionSlam.getLandMarks().get(trackO.getId()),globaCloudPoints);
+            }
         }
     }
 }
