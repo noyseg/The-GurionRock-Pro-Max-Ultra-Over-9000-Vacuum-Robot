@@ -22,7 +22,7 @@ public class FusionSlam {
     }
     private final HashMap<String, LandMark> landMarks;
     private final List<Pose> poses;
-    private AtomicInteger microservicesCounter;
+    private final AtomicInteger microservicesCounter;
 
     private FusionSlam() {
         this.landMarks = new HashMap<String, LandMark>();
@@ -57,6 +57,13 @@ public class FusionSlam {
     public void addLandMark(LandMark lm) {
         landMarks.put(lm.getId(), lm);
     }
+
+    public void addPose(Pose p){
+        poses.add(p);
+    }
+
+
+
 
     // Fix if they are not in the same size
     public void updateLandMark(LandMark landM, List<CloudPoint> improvePoints) {
@@ -107,6 +114,16 @@ public class FusionSlam {
             newCloudPoints.add(newCloudPoint);
         }
         return newCloudPoints;
+    }
+
+    public void creatOutputFile() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'creatOutputFile'");
+    }
+
+    // Get current Microservices Counter
+    public int getMicroservicesCounter() {
+        return microservicesCounter.get();
     }
 
     // normal term:

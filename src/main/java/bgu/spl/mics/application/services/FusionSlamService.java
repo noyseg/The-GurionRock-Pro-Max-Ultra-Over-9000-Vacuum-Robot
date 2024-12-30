@@ -29,6 +29,7 @@ import bgu.spl.mics.application.objects.TrackedObject;
  */
 public class FusionSlamService extends MicroService {
     private final FusionSlam fusionSlam;
+    private boolean isTimeServiceOver;
     private HashMap<> currentPose;
 
     /**
@@ -39,7 +40,7 @@ public class FusionSlamService extends MicroService {
     public FusionSlamService(FusionSlam fusionSlam) {
         super("FusionSlam");
         this.fusionSlam = fusionSlam;
-        this.currentPose = null; // ????????????
+        this.isTimeServiceOver = false;
     }
 
     /**
@@ -58,12 +59,38 @@ public class FusionSlamService extends MicroService {
             updateLandMarks(trackedObj);
 
         });
-        subscribeEvent(PoseEvent.class, pose -> { 
-
+        subscribeEvent(PoseEvent.class, pose -> {
+            fusionSlam.addPose(pose.getPose());
         });
-        subscribeBroadcast(TerminatedBroadcast.class, terminate -> { 
 
+        subscribeBroadcast(TerminatedBroadcast.class, terminate -> {
+            // Time Service was terminated 
+            if (terminate.getSenderName() == "TimeService"){
+                isTimeServiceOver = true;
+                // All other microservisec was finished too 
+                if (fusionSlam.getMicroservicesCounter() == 0){
+                    fusionSlam.creatOutputFile();
+                    terminate();
+                }
+            }
+            else{
+                // Another microservice was finished 
+                fusionSlam.decrementMicroserviceCount(); 
+            }
+            // All other microservices finished their run
+            if (fusionSlam.getMicroservicesCounter() == 0){
+                // Notify Time service he need to finish 
+                if (!isTimeServiceOver){
+                    TerminatedBroadcast timeToFinish = new TerminatedBroadcast(getName());
+                    sendBroadcast(timeToFinish); // Sends only to TimeService
+                }
+                else{
+                    fusionSlam.creatOutputFile();
+                    terminate();
+                }
+            }
         });
+
         subscribeBroadcast(CrashedBroadcast.class, crash -> { 
 
         });
