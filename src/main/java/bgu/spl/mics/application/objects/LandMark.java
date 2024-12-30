@@ -10,7 +10,7 @@ import java.util.List;
 public class LandMark {
     private final String id;
     private final String description;
-    private final List<CloudPoint> coordinates;
+    private List<CloudPoint> coordinates;
 
     /**
      * Constructor to initialize the landmark.
@@ -44,6 +44,10 @@ public class LandMark {
      */
     public List<CloudPoint> getCoordinates() {
         return coordinates;
+    }
+
+    public void setCoordinates(List<CloudPoint> newCoordinates) {
+        this.coordinates = newCoordinates;
     }
 
     @Override
