@@ -83,12 +83,12 @@ public class LiDarService extends MicroService {
             try {
                 if (future.get() == false) {
                     System.out.println("Fusion Slum could not handle the tracked objects");
-                    sendBroadcast(new TerminatedBroadcast(getName()));
+                    sendBroadcast(new TerminatedBroadcast(getName(),lidarWorker.getName()));
                     terminate();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                sendBroadcast(new CrashedBroadcast(getName()));
+                sendBroadcast(new CrashedBroadcast(getName(),lidarWorker.getName()));
             }
         }
     }

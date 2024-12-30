@@ -15,6 +15,7 @@ public class LiDarWorkerTracker {
 
     private final int id;
     private final int frequency;
+    private final String name;
     private STATUS status;
     private List<TrackedObject> lastTrackedObjectList;
     private LiDarDataBase lbd;
@@ -22,6 +23,7 @@ public class LiDarWorkerTracker {
     public LiDarWorkerTracker(int id , int frequency, String filePath){
         this.id = id;
         this.frequency = frequency;
+        this.name = "Lidar";
         this.status = STATUS.UP;
         this.lastTrackedObjectList = new LinkedList<TrackedObject>();
         this.lbd = LiDarDataBase.getInstance(filePath);
@@ -54,6 +56,10 @@ public class LiDarWorkerTracker {
     public void setStatus(STATUS status){
         this.status = status;
     } 
+
+    public String getName(){
+        return this.name;
+    }
 
    
 }

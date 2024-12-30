@@ -13,6 +13,8 @@ import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.objects.Camera;
 import bgu.spl.mics.application.objects.CameraProcessed;
 import bgu.spl.mics.application.objects.DetectedObject;
+import bgu.spl.mics.application.objects.ErrorCoordinator;
+import bgu.spl.mics.application.objects.LastFrameCamera;
 import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
 import bgu.spl.mics.example.messages.ExampleBroadcast;
@@ -35,7 +37,7 @@ public class CameraService extends MicroService {
      * @param camera The Camera object that this service will use to detect objects.
      */
     public CameraService(Camera camera) {
-        super("Camera" + camera.getID());
+        super(camera.getName() + camera.getID());
         this.camera = camera;
         this.cpList = new LinkedList<>();
         lastDetectedObj = new LinkedList<DetectedObject>();
@@ -58,9 +60,9 @@ public class CameraService extends MicroService {
 
         // Subscribe to TerminateBroadcast to gracefully shut down
         subscribeBroadcast(TerminatedBroadcast.class, terminate -> {
-            if (terminate.getSenderId().equals("TimeService")) {
+            if (terminate.getSenderName().equals("TimeService")) {
                 camera.setStatus(STATUS.DOWN);
-                sendBroadcast(new TerminatedBroadcast(getName()));
+                sendBroadcast(new TerminatedBroadcast(getName(),camera.getName()));
                 terminate();
             }
         });
@@ -68,7 +70,7 @@ public class CameraService extends MicroService {
         // Handle CrashedBroadcast (if needed)
         subscribeBroadcast(CrashedBroadcast.class, crash -> {
             camera.setStatus(STATUS.DOWN);
-            sendBroadcast(new TerminatedBroadcast(getName()));
+            sendBroadcast(new TerminatedBroadcast(getName(),camera.getName()));
             // Print the most recent detectedObjects for the current camera
         });
     }
@@ -89,7 +91,10 @@ public class CameraService extends MicroService {
                     System.out.println("Camera Sensor with the name" + getName() + " caused the error");
                     System.out.println("the last detected object caught by the cemra are: ");// להשלים
                     camera.setStatus(STATUS.ERROR);
-                    sendBroadcast(new CrashedBroadcast(getName()));
+                    sendBroadcast(new CrashedBroadcast(getName(),camera.getName()));
+                    LastFrameCamera lf = new LastFrameCamera(getName(),tick.getCurrentTime(),lastDetectedObj);
+                    ErrorCoordinator.getInstance().setLastFramesCameras(lf);
+                    ErrorCoordinator.getInstance().setCrashed(getName(), tick.getCurrentTime(), camera.getName());
                     terminate();
                 }
             }
@@ -101,12 +106,8 @@ public class CameraService extends MicroService {
         }
         // לחשוב לשנות לפתרון נאיבי שעובר בלולאה על הרשימה במצלמה
 
-        // lastDetectedObj =
         // camera.getDetectedObjectsList().get(0).getDetectedObjects();
-        if (cpList.getFirst() != null
-                && cpList.getFirst().getProcessionTime() == tick.getCurrentTime())
-
-        {
+        if (cpList.getFirst() != null && cpList.getFirst().getProcessionTime() == tick.getCurrentTime()){
             CameraProcessed toLidar = cpList.removeFirst();
             StampedDetectedObjects stampedToLiDar = toLidar.getDetectedObject();
             DetectObjectsEvent doe = new DetectObjectsEvent(stampedToLiDar, stampedToLiDar.getTime() ,getName());
@@ -114,19 +115,19 @@ public class CameraService extends MicroService {
             try {
                 if (future.get() == false) {
                     System.out.println("No LiDar manage to tracked the objects");
-                    sendBroadcast(new TerminatedBroadcast(getName()));
+                    sendBroadcast(new TerminatedBroadcast(getName(),camera.getName()));
                     terminate();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                sendBroadcast(new CrashedBroadcast(getName()));
+                //sendBroadcast(new CrashedBroadcast(getName(),5));
             }
         }
 
         // if camera is empty --- לבדוק אם קורה בזמן הנוכחי או בזמן הבא
         if (camera.getDetectedObjectsList().isEmpty()) {
             camera.setStatus(STATUS.DOWN);
-            sendBroadcast(new TerminatedBroadcast(getName()));
+            sendBroadcast(new TerminatedBroadcast(getName(),camera.getName()));
             terminate();
         }
 

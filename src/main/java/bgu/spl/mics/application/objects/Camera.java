@@ -9,12 +9,14 @@ import java.util.List;
  */
 public class Camera {
     private final int id;
+    private final String name;
     private final int frequency;
     private STATUS status;
     private List<StampedDetectedObjects> detectedObjectsList; // List of detected objects with timestamps
 
     public Camera(int id, int frequency) {
         this.id = id;
+        this.name = "Camera";
         this.frequency = frequency;
         this.status = STATUS.UP;
         this.detectedObjectsList = new LinkedList<StampedDetectedObjects>();
@@ -43,6 +45,10 @@ public class Camera {
 
     public int getID() {
         return id;
+    }
+
+    public String getName(){
+        return this.name;
     }
 
 

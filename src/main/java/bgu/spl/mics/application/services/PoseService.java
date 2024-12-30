@@ -41,7 +41,7 @@ public class PoseService extends MicroService {
 
         // Handle CrashedBroadcast (if needed)
         subscribeBroadcast(CrashedBroadcast.class, crash -> {
-            sendBroadcast(new TerminatedBroadcast(getName()));
+            sendBroadcast(new TerminatedBroadcast(getName(),getName()));
             // Print the most recent poses? for the current camera
         });
 
@@ -59,12 +59,12 @@ public class PoseService extends MicroService {
         try {
             if (future.get() == false) {
                 System.out.println("Fusion Slum could not get Point");
-                sendBroadcast(new TerminatedBroadcast(getName()));
+                sendBroadcast(new TerminatedBroadcast(getName(),getName()));
                 terminate();
             }
         } catch (Exception e) {
             e.printStackTrace();
-            sendBroadcast(new CrashedBroadcast(getName())); // why this the handle? itself did not crash 
+            sendBroadcast(new CrashedBroadcast(getName(),getName())); // why this the handle? itself did not crash 
         }
     }
 }

@@ -46,9 +46,9 @@ public class main {
         FusionSlam fusionSlam = FusionSlam.getInstance();
         
         // Perform the pose transformation
-        CloudPoint transformedPoint = fusionSlam.poseTranformation(robotPose, xDetected, yDetected);
+        // CloudPoint transformedPoint = fusionSlam.poseTranformation(robotPose, xDetected, yDetected);
         
         // Output the result
-        System.out.println("Transformed CloudPoint: " + transformedPoint);
+        // System.out.println("Transformed CloudPoint: " + transformedPoint);
     }
 }

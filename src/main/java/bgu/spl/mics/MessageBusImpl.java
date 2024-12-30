@@ -121,4 +121,8 @@ public class MessageBusImpl implements MessageBus {
 		}
 		return queue.take(); // Blocks until a message is available
 	}
+
+	public ConcurrentHashMap<MicroService, BlockingQueue<Message>> getMicroServicesQueues(){
+		return this.microServicesQueues;
+	}
 }

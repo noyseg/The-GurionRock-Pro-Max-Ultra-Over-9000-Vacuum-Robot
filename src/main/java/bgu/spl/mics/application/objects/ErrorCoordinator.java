@@ -7,10 +7,15 @@ public class ErrorCoordinator {
     private static class ErrorCoordinatorHolder {
         private static ErrorCoordinator instance = new ErrorCoordinator();
     }
-    private List<List<DetectedObject>> lastFramesCameras;
-    private List<List<TrackedObject>> lastFramesLidars;
+    private List<LastFrameCamera> lastFramesCameras;
+    private List<LastFrameLidar> lastFramesLidars;
     private Object lockLastFramesCameras;
     private Object lockLastFramesLidars;
+    private boolean isCrashed = false;
+    private String faultSensor = "";
+    private int crashedTick = -1; 
+    private String crashType = "";
+
 
      // Private constructor for Singleton pattern
      private ErrorCoordinator() {
@@ -30,7 +35,7 @@ public class ErrorCoordinator {
      *
      * @param newFrame The frame to add.
      */
-    public void setLastFramesCameras(List<DetectedObject> newFrame) {
+    public void setLastFramesCameras(LastFrameCamera newFrame) {
         synchronized (lockLastFramesCameras) {
             lastFramesCameras.add(newFrame);
         }
@@ -41,7 +46,7 @@ public class ErrorCoordinator {
      *
      * @param newFrame The frame to add.
      */
-    public void setLastFramesLidars(List<TrackedObject> newFrame) {
+    public void setLastFramesLidars(LastFrameLidar newFrame) {
         synchronized (lockLastFramesLidars) {
             lastFramesLidars.add(newFrame);
         }
@@ -50,11 +55,11 @@ public class ErrorCoordinator {
     /**
      * Retrieves the last frames from cameras.
      *
-     * @return A copy of the last frames from cameras.
+     * @return last frames from cameras.
      */
-    public List<List<DetectedObject>> getLastFramesCameras() {
+    public List<LastFrameCamera> getLastFramesCameras() {
         synchronized (lockLastFramesCameras) {
-            return new LinkedList<>(lastFramesCameras);
+            return this.lastFramesCameras;
         }
     }
 
@@ -63,10 +68,47 @@ public class ErrorCoordinator {
      *
      * @return A copy of the last frames from LiDARs.
      */
-    public List<List<TrackedObject>> getLastFramesLidars() {
+    public List<LastFrameLidar> getLastFramesLidars() {
         synchronized (lockLastFramesLidars) {
-            return new LinkedList<>(lastFramesLidars);
+            return this.lastFramesLidars;
         }
     }
+
+    public synchronized void setCrashed(String faultSensor,int crashedTick, String crashType) {
+        if (!isCrashed){
+            this.faultSensor = faultSensor;
+            this.crashedTick = crashedTick;
+            this.crashType = crashType;
+            isCrashed = true;
+        }
+    }
+
+    /**
+     * Retrieves the name of the fault sensor.
+     *
+     * @return The name of the fault sensor.
+     */
+    public synchronized String getFaultSensor() {
+        return faultSensor;
+    }
+
+    /**
+     * Retrieves the tick when the crash occurred.
+     *
+     * @return The tick when the crash occurred.
+     */
+    public synchronized int getCrashedTick() {
+        return crashedTick;
+    }
+
+    /**
+     * Retrieves the type of crash.
+     *
+     * @return The type of crash.
+     */
+    public synchronized String getCrashType() {
+        return crashType;
+    }
+
 }
     
