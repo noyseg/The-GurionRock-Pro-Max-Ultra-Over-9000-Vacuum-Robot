@@ -3,7 +3,15 @@ package bgu.spl.mics.application.objects;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 
 import bgu.spl.mics.MicroService;
 
@@ -22,11 +30,13 @@ public class FusionSlam {
     }
     private final HashMap<String, LandMark> landMarks;
     private final List<Pose> poses;
+    private final AtomicInteger cameraCounter;
     private final AtomicInteger microservicesCounter;
 
     private FusionSlam() {
         this.landMarks = new HashMap<String, LandMark>();
         this.poses = new LinkedList<Pose>();
+        this.cameraCounter = new AtomicInteger(0);
         this.microservicesCounter = new AtomicInteger(0);
     }
 
@@ -49,8 +59,29 @@ public class FusionSlam {
         microservicesCounter.decrementAndGet();
     }
 
+        // Methods for Cameras Count:
+    /**
+     * Increments the count of active cameras.
+     */
+    public void incrementCameraCount() {
+        cameraCounter.incrementAndGet();
+    }
+
+    /**
+     * Decrements the count of active cameras.
+     */
+    public void decrementCameraCount() {
+        cameraCounter.decrementAndGet();
+    }
+
+    
+
     public HashMap<String, LandMark> getLandMarks(){
         return this.landMarks;
+    }
+
+    public List<Pose> getPoses(){
+        return this.poses;
     }
 
     // Fix if they are not in the same size
@@ -71,8 +102,6 @@ public class FusionSlam {
         List<CloudPoint> newCloudPoints = new LinkedList<>();
         int lenImprovePoints = improvePoints.size();
         int lenOldCloudPoints = oldCloudPoints.size();
-        boolean improvePointsLonger = false;
-        boolean oldPointsLonger = false;
         // Calculate avg of oldCloudPoints and improvePoints and put in newCloudPoints
         for (int i = 0; i < lenImprovePoints && i < lenOldCloudPoints; i++){
             CloudPoint oldP = oldCloudPoints.get(i);
@@ -116,15 +145,15 @@ public class FusionSlam {
         return newCloudPoints;
     }
 
-    public void creatOutputFile() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'creatOutputFile'");
-    }
-
     // Get current Microservices Counter
     public int getMicroservicesCounter() {
         return microservicesCounter.get();
     }
+
+        // Get current Microservices Counter
+        public int getCamerasCounter() {
+            return microservicesCounter.get();
+        }
 
     // normal term:
     // statisticalFolder
