@@ -93,8 +93,8 @@ public class FusionSlamService extends MicroService {
             // Time Service was terminated 
             if (terminate.getSenderName().equals("TimeService"))
                 isTimeServiceTerminated = true;
-            // fix this put substring c 
-            if(terminate.getSenderType().equals("Camera")){
+            // Camera was finished 
+            if(terminate.getSenderName().startsWith("C")){
                 fusionSlam.decrementCameraCount();
             }
             if (!terminate.getSenderName().equals("TimeService"))
@@ -156,7 +156,7 @@ public class FusionSlamService extends MicroService {
         // Creating an ArrayList of values 
         ArrayList<LandMark> landMarkslist = new ArrayList<>(values);
         if (error){
-            outputData.put("error",errorCoordinator.getCrashType()+" disconnected");
+            outputData.put("error",errorCoordinator.getDescription());
             outputData.put("faultySensor", errorCoordinator.getFaultSensor());
             outputData.put("lastCamerasFrame",errorCoordinator.getLastFramesCameras());
             outputData.put("lastLiDarWorkerTrackersFrame",errorCoordinator.getLastFramesLidars());

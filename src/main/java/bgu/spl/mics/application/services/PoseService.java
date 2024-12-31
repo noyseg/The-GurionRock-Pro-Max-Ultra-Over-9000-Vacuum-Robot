@@ -35,6 +35,12 @@ public class PoseService extends MicroService {
     protected void initialize() {
         // Handle TickBroadcast 
         subscribeBroadcast(TickBroadcast.class, tick -> {
+            // He is the only one that was left
+            if(FusionSlam.getInstance().getMicroservicesCounter() == 1){
+                gpsimu.setStatus(STATUS.DOWN);
+                sendBroadcast(new TerminatedBroadcast(getName()));
+                terminate();  
+            }
             if (gpsimu.getStatus() == STATUS.UP){
                 processTick(tick);
             }
@@ -43,15 +49,15 @@ public class PoseService extends MicroService {
         // Handle CrashedBroadcast 
         subscribeBroadcast(CrashedBroadcast.class, crash -> {
             gpsimu.setStatus(STATUS.DOWN);
-            sendBroadcast(new TerminatedBroadcast(getName(),getName()));
+            sendBroadcast(new TerminatedBroadcast(getName()));
             terminate();  
         });
         // Handle CrashedBroadcast 
         subscribeBroadcast(TerminatedBroadcast.class, terminate -> {
             // Only Pose Service was left 
-            if (terminate.getSenderName().equals("TimeService") || FusionSlam.getInstance().getMicroservicesCounter() == 1){
+            if (terminate.getSenderName().equals("TimeService")){
                 gpsimu.setStatus(STATUS.DOWN);
-                sendBroadcast(new TerminatedBroadcast(getName(),getName()));
+                sendBroadcast(new TerminatedBroadcast(getName()));
                 terminate();  
             }
         });

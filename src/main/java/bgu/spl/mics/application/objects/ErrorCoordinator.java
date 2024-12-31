@@ -14,9 +14,9 @@ public class ErrorCoordinator {
     private Object lockLastFramesCameras;
     private Object lockLastFramesLidars;
     private boolean isCrashed = false;
+    private String description = "" ;
     private String faultSensor = "";
     private int crashedTick = -1; 
-    private String crashType = "";
 
 
      // Private constructor for Singleton pattern
@@ -81,11 +81,11 @@ public class ErrorCoordinator {
         return this.robotPoses;
     }
 
-    public synchronized void setCrashed(String faultSensor,int crashedTick, String crashType) {
+    public synchronized void setCrashed(String faultSensor,int crashedTick, String description) {
         if (!isCrashed){
+            this.description = description;
             this.faultSensor = faultSensor;
             this.crashedTick = crashedTick;
-            this.crashType = crashType;
             isCrashed = true;
         }
     }
@@ -95,7 +95,7 @@ public class ErrorCoordinator {
      *
      * @return The name of the fault sensor.
      */
-    public synchronized String getFaultSensor() {
+    public String getFaultSensor() {
         return faultSensor;
     }
 
@@ -104,22 +104,16 @@ public class ErrorCoordinator {
      *
      * @return The tick when the crash occurred.
      */
-    public synchronized int getCrashedTick() {
+    public int getCrashedTick() {
         return crashedTick;
-    }
-
-    /**
-     * Retrieves the type of crash.
-     *
-     * @return The type of crash.
-     */
-    public synchronized String getCrashType() {
-        return crashType;
     }
 
     public void setRobotPoses(Pose pose) {
         robotPoses.add(pose);
     }
 
+    public String getDescription() {
+        return this.description;
+    }
 }
     

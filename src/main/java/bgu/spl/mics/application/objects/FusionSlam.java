@@ -93,9 +93,6 @@ public class FusionSlam {
         poses.add(p);
     }
 
-
-
-
     // Fix if they are not in the same size
     public void updateLandMark(LandMark landM, List<CloudPoint> improvePoints) {
         List<CloudPoint> oldCloudPoints  = this.landMarks.get(landM.getId()).getCoordinates();
@@ -150,19 +147,8 @@ public class FusionSlam {
         return microservicesCounter.get();
     }
 
-        // Get current Microservices Counter
-        public int getCamerasCounter() {
-            return microservicesCounter.get();
-        }
-
-    // normal term:
-    // statisticalFolder
-    // landmark
-
-    // error :
-    // error description
-    // sender of crashed
-    // last frames
-    // poses
-    // statisticalFolder
+    // Get current Microservices Counter
+    public int getCamerasCounter() {
+        return microservicesCounter.get();
+    }
 }

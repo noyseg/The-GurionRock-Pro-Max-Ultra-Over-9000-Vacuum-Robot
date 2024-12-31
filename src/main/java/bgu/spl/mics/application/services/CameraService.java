@@ -1,8 +1,6 @@
 package bgu.spl.mics.application.services;
-
 import java.util.LinkedList;
 import java.util.List;
-
 import bgu.spl.mics.application.objects.StatisticalFolder;
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
@@ -15,10 +13,8 @@ import bgu.spl.mics.application.objects.CameraProcessed;
 import bgu.spl.mics.application.objects.DetectedObject;
 import bgu.spl.mics.application.objects.ErrorCoordinator;
 import bgu.spl.mics.application.objects.LastFrameCamera;
-import bgu.spl.mics.application.objects.LastFrameLidar;
 import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
-import bgu.spl.mics.example.messages.ExampleBroadcast;
 
 /**
  * CameraService is responsible for processing data from the camera and
@@ -65,7 +61,7 @@ public class CameraService extends MicroService {
         subscribeBroadcast(TerminatedBroadcast.class, terminate -> {
             if (terminate.getSenderName().equals("TimeService")) {
                 camera.setStatus(STATUS.DOWN);
-                sendBroadcast(new TerminatedBroadcast(getName(),camera.getType()));
+                sendBroadcast(new TerminatedBroadcast(getName()));
                 terminate();
             }
         });
@@ -73,7 +69,7 @@ public class CameraService extends MicroService {
         // Handle CrashedBroadcast 
         subscribeBroadcast(CrashedBroadcast.class, crash -> {
             camera.setStatus(STATUS.DOWN);
-            sendBroadcast(new TerminatedBroadcast(getName(),camera.getType()));
+            sendBroadcast(new TerminatedBroadcast(getName()));
             LastFrameCamera lf = new LastFrameCamera(getName(), lastDetectedObjTime, lastDetectedObj);
             ErrorCoordinator.getInstance().setLastFramesCameras(lf);
             terminate();
@@ -96,11 +92,10 @@ public class CameraService extends MicroService {
                 // Error was detected 
                 if (dob.getID().equals("ERROR")) {
                     camera.setStatus(STATUS.ERROR);
-                    sendBroadcast(new CrashedBroadcast(getName(),camera.getType()));
-                    lastDetectedObjTime = tickTime;
+                    sendBroadcast(new CrashedBroadcast(getName()));
                     LastFrameCamera lf = new LastFrameCamera(getName(),lastDetectedObjTime ,lastDetectedObj);
                     ErrorCoordinator.getInstance().setLastFramesCameras(lf);
-                    ErrorCoordinator.getInstance().setCrashed(getName(), tickTime, camera.getType());
+                    ErrorCoordinator.getInstance().setCrashed(getName(), tickTime, dob.getDescription());
                     terminate();
                 }
             }
@@ -114,7 +109,7 @@ public class CameraService extends MicroService {
             }
         }
         // Objects are ready to be sent to lidar  
-        if (camera.getStatus() == STATUS.UP && cameraProcessedList.getFirst() != null && cameraProcessedList.getFirst().getProcessionTime() == tick.getCurrentTime()){
+        if (camera.getStatus() == STATUS.UP && !cameraProcessedList.isEmpty() && cameraProcessedList.getFirst() != null && cameraProcessedList.getFirst().getProcessionTime() == tick.getCurrentTime()){
             CameraProcessed toLidar = cameraProcessedList.removeFirst(); 
             StampedDetectedObjects stampedToLiDar = toLidar.getDetectedObject(); // The dectedObjects to be sent
             DetectObjectsEvent doe = new DetectObjectsEvent(stampedToLiDar, stampedToLiDar.getTime() ,getName());
@@ -123,7 +118,9 @@ public class CameraService extends MicroService {
         // Camera does not have any other detectedObject, it can be terminated
         if (camera.getStatus() == STATUS.UP && camera.getDetectedObjectsList().isEmpty()) {
             camera.setStatus(STATUS.DOWN);
-            sendBroadcast(new TerminatedBroadcast(getName(),camera.getType()));
+            LastFrameCamera lf = new LastFrameCamera(getName(),lastDetectedObjTime ,lastDetectedObj);
+            ErrorCoordinator.getInstance().setLastFramesCameras(lf);
+            sendBroadcast(new TerminatedBroadcast(getName()));
             terminate();
         }
     }

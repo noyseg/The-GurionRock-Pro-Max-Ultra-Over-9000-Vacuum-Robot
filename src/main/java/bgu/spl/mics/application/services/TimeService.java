@@ -58,7 +58,7 @@ public class TimeService extends MicroService {
                 }
 
                 // After duration or if there are no more microServices , broadcast termination
-                sendBroadcast(new TerminatedBroadcast(getName(),getName()));
+                sendBroadcast(new TerminatedBroadcast(getName()));
                 terminate();
 
             } catch (InterruptedException e) {
