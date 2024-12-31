@@ -3,12 +3,20 @@ package bgu.spl.mics.application.objects;
 import java.util.LinkedList;
 import java.util.List;
 
+import bgu.spl.mics.Future;
+import bgu.spl.mics.Message;
+import bgu.spl.mics.application.messages.CrashedBroadcast;
+import bgu.spl.mics.application.messages.DetectObjectsEvent;
+import bgu.spl.mics.application.messages.TerminatedBroadcast;
+import bgu.spl.mics.application.messages.TickBroadcast;
+
 /**
  * Represents a camera sensor on the robot.
  * Responsible for detecting objects in the environment.
  */
 public class Camera {
     private final int id;
+    private final String type;
     private final String name;
     private final int frequency;
     private STATUS status;
@@ -16,10 +24,10 @@ public class Camera {
 
     public Camera(int id, int frequency) {
         this.id = id;
-        this.name = "Camera";
+        this.type = "Camera";
+        this.name = this.type + String.valueOf(this.id);
         this.frequency = frequency;
         this.status = STATUS.UP;
-        this.detectedObjectsList = new LinkedList<StampedDetectedObjects>();
     }
 
     public List<StampedDetectedObjects> getDetectedObjectsList() {
@@ -47,9 +55,12 @@ public class Camera {
         return id;
     }
 
+    public String getType(){
+        return this.type;
+    }
+
     public String getName(){
         return this.name;
     }
-
 
 }

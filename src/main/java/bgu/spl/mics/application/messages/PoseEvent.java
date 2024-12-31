@@ -5,19 +5,19 @@ import bgu.spl.mics.Event;
 
 public class PoseEvent implements Event<Boolean> {
     private final Pose pose;
-    private final String senderName;
+    //private final String senderName;
 
-    public PoseEvent(Pose pose,String senderName){
+    public PoseEvent(Pose pose){
         this.pose = pose;
-        this.senderName = senderName;
+        //this.senderName = senderName;
     }
 
     public Pose getPose(){
         return this.pose;
     }
 
-    public String getSenderName(){
-        return this.senderName;
-    }
+    //public String getSenderName(){
+    //    return this.senderName;
+    //}
     
 }

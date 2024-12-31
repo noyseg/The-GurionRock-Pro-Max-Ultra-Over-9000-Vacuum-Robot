@@ -2,6 +2,12 @@ package bgu.spl.mics.application.objects;
 
 import java.util.List;
 
+import bgu.spl.mics.Future;
+import bgu.spl.mics.application.messages.CrashedBroadcast;
+import bgu.spl.mics.application.messages.PoseEvent;
+import bgu.spl.mics.application.messages.TerminatedBroadcast;
+import bgu.spl.mics.application.messages.TickBroadcast;
+
 /**
  * Represents the robot's GPS and IMU system.
  * Provides information about the robot's position and movement.
@@ -21,7 +27,7 @@ public class GPSIMU {
         return this.currentTick;
     }
 
-    public STATUS getsStatus(){
+    public STATUS getStatus(){
         return this.status;
     }
 
@@ -33,7 +39,7 @@ public class GPSIMU {
          this.currentTick = updateTick;
     }
 
-    public void setsStatus(STATUS status){
+    public void setStatus(STATUS status){
         this.status = status;
     }
 
@@ -45,4 +51,12 @@ public class GPSIMU {
         return this.PoseList.get(currentTick-1);
     }
 
+    public PoseEvent processTick() {
+        PoseEvent poseEvent = new PoseEvent(getPose());
+        return poseEvent;
+    }
+
+    public void updateLastPose(){
+        ErrorCoordinator.getInstance().setRobotPoses(getPose());
+    }
 }

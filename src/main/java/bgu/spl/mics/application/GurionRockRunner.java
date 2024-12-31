@@ -1,5 +1,16 @@
 package bgu.spl.mics.application;
 
+import java.io.FileReader;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.LinkedList;
+import java.util.List;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import bgu.spl.mics.application.objects.StampedCloudPoints;
+
 /**
  * The main entry point for the GurionRock Pro Max Ultra Over 9000 simulation.
  * <p>
@@ -18,7 +29,15 @@ public class GurionRockRunner {
      */
     public static void main(String[] args) {
         System.out.println("Starting the GurionRock Simulation!");
-
+        try (FileReader reader = new FileReader(config)) {
+            Gson gson = new Gson();
+            Type listType = new TypeToken<List<StampedCloudPoints>>() {}.getType();
+            stampedCloudPoints = gson.fromJson(reader, listType);
+        } catch (IOException e) {
+            System.err.println("Failed to load LiDAR data: " + e.getMessage());
+            stampedCloudPoints = new LinkedList<StampedCloudPoints>();
+        }
+        
         // Example of thread creation
         Thread t1 = new Thread(() -> {
             try {

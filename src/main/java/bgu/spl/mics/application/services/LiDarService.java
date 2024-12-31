@@ -47,23 +47,24 @@ public class LiDarService extends MicroService {
     protected void initialize() {
         System.out.println("LiDarService " + getName() + " started");
 
-        
+        // Handle DetectObjectsEvent
         subscribeEvent(DetectObjectsEvent.class, ev -> { 
             if (lidarWorker.getStatus() == STATUS.UP){
-<<<<<<< HEAD
                 if (ev.getTimeOfDetectedObjects() + lidarWorker.getFrequency() <= currentTick){
-                    processDetectedObjects(ev);
+                    List<TrackedObject> processToBeSent = processDetectedObjects(ev);
+                    StatisticalFolder.getInstance().incrementTrackedObjects(processToBeSent.size());
+                    TrackedObjectsEvent tracked = new TrackedObjectsEvent(processToBeSent,getName());
+                    Future<Boolean> future = (Future<Boolean>) sendEvent(tracked);
                 }
-=======
-//                if (ev.getTimeOfDetectedObjects() + lidarWorker.getFrequency() > )
->>>>>>> 843ce00044092391a481f7efe6aff0d4fee2054a
             }
         });
 
+        // Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
             if (lidarWorker.getStatus() == STATUS.UP)
                 processTick(tick);
         });
+
         subscribeBroadcast(TerminatedBroadcast.class, Terminated -> {
             if (Terminated.getSenderName().equals("TimeService")) {
                 lidarWorker.setStatus(STATUS.DOWN);
@@ -71,6 +72,7 @@ public class LiDarService extends MicroService {
                 terminate();
             }
         });
+
         subscribeBroadcast(CrashedBroadcast.class, Crashed -> {
             lidarWorker.setStatus(STATUS.DOWN);
             LastFrameLidar lf = new LastFrameLidar(getName(), currentTick, lidarWorker.getLastTrackedObjectList());
@@ -80,11 +82,13 @@ public class LiDarService extends MicroService {
         });
         // Subscribes to TickBroadcast, TerminatedBroadcast, CrashedBroadcast, DetectObjectsEvent.
     }
-
     
     private void processTick(TickBroadcast tick){
-        currentTick = tick.getCurrentTime();
-        if (!lidarWorker.getlLiDarDataBase().lidarErrorInTime(tick.getCurrentTime())){
+        this.currentTick = tick.getCurrentTime();
+        // lidarErrorInTime will return true if there is an error
+        if (lidarWorker.getlLiDarDataBase().lidarErrorInTime(tick.getCurrentTime())){
+            List<TrackedObject> 
+            lidarWorker.setLastTrackedObjectList()
             LastFrameLidar lf = new LastFrameLidar(getName(), currentTick, lidarWorker.getLastTrackedObjectList());
             ErrorCoordinator.getInstance().setLastFramesLidars(lf);
             sendBroadcast(new CrashedBroadcast(getName(),lidarWorker.getName()));
@@ -141,16 +145,18 @@ public class LiDarService extends MicroService {
         complete(ev, true);
     }
 
+    // Gets detected DetectObjectsEvent ready rigth now to be sent, and return correspondent List of TrackedObjects  
     private List<TrackedObject> processDetectedObjects(DetectObjectsEvent ev){
         List<TrackedObject> trackedObjectsToSend = new LinkedList<>();
-        StampedDetectedObjects toProcess = ev.getStampedDetectedObjects();
-        List<DetectedObject> detectedObjects = toProcess.getDetectedObjects();
+        StampedDetectedObjects toProcess = ev.getStampedDetectedObjects(); // Extract the StampedDetectedObjects themself
+        List<DetectedObject> detectedObjects = toProcess.getDetectedObjects();  // Extract the DetectedObjects themself
         int time = toProcess.getTime();
         for (DetectedObject doe : detectedObjects){
             ObjectDataTracker objData = new ObjectDataTracker(doe.getID(),time);
-            List<List<Double>> cloupPointsData = lidarWorker.getlLiDarDataBase().getstampedCloudPointsMap().get(objData);
+            List<List<Double>> cloudPointsData = lidarWorker.getlLiDarDataBase().getstampedCloudPointsMap().get(objData); // Gets relevent cloud Points Data from lidar Date Base 
             List<CloudPoint> coordinates  = new LinkedList<>();
-            for(List<Double> cp :cloupPointsData){
+            // Transform List<List<Double>> to list of CloudPoint
+            for(List<Double> cp :cloudPointsData){
                 CloudPoint point = new CloudPoint(cp.get(0), cp.get(1));
                 coordinates.add(point);
             }

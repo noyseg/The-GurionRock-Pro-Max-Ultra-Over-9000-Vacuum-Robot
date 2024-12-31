@@ -83,7 +83,7 @@ public class LiDarDataBase {
     public boolean lidarErrorInTime(int time){
         for (StampedCloudPoints stm: this.stampedCloudPoints){
             if (stm.getTime() == time){
-                if (stm.equals("error")){ // Check Error or error
+                if (stm.equals("ERROR")){ // Check Error or error
                     return true;
                 }
             }
