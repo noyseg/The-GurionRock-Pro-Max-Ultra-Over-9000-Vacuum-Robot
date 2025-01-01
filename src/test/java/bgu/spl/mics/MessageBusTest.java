@@ -24,7 +24,7 @@ class MessageBusTest {
         messageBus = MessageBusImpl.getIstance(); // Create a fresh instance
         testMicroService = new TimeService(4, 3);
         poseEvent = new PoseEvent(new Pose(1.0f, 1.0f, 30.0f, 5), "Test");
-        tickBroadcast = new TickBroadcast("TimeService",5);
+        tickBroadcast = new TickBroadcast("TimeService", 5);
 
     }
 
@@ -91,36 +91,36 @@ class MessageBusTest {
         messageBus.register(testMicroService);
         messageBus.subscribeBroadcast(ExampleBroadcast.class, testMicroService);
         assertTrue(messageBus.getBroadcastSubscribers().get(ExampleBroadcast.class).contains(testMicroService));
-    
+
         // Test subscribing to the same broadcast multiple times
         messageBus.subscribeBroadcast(ExampleBroadcast.class, testMicroService);
         assertEquals(1, messageBus.getBroadcastSubscribers().get(ExampleBroadcast.class).size());
-    
+
         // Test subscribing to multiple broadcasts
         messageBus.subscribeBroadcast(TickBroadcast.class, testMicroService);
         assertTrue(messageBus.getBroadcastSubscribers().get(TickBroadcast.class).contains(testMicroService));
-    
+
         // Test subscribing multiple MicroServices to the same broadcast
         MicroService anotherService = new TimeService(2, 2);
         messageBus.register(anotherService);
         messageBus.subscribeBroadcast(ExampleBroadcast.class, anotherService);
         assertTrue(messageBus.getBroadcastSubscribers().get(ExampleBroadcast.class).contains(anotherService));
         assertEquals(2, messageBus.getBroadcastSubscribers().get(ExampleBroadcast.class).size());
-    
+
         // Test subscribing to a broadcast without being registered
         MicroService unregisteredService = new TimeService(1, 1);
         assertThrows(IllegalStateException.class, () -> messageBus.subscribeBroadcast(ExampleBroadcast.class, unregisteredService));
-    
+
 //        // Test subscribing to a null broadcast
 //        assertThrows(IllegalArgumentException.class, () -> messageBus.subscribeBroadcast(null, testMicroService));
 //
 //        // Test subscribing a null MicroService
 //        assertThrows(IllegalArgumentException.class, () -> messageBus.subscribeBroadcast(ExampleBroadcast.class, null));
-    
+
         // Test subscribing after unregistering
         messageBus.unregister(testMicroService);
         assertThrows(IllegalStateException.class, () -> messageBus.subscribeBroadcast(ExampleBroadcast.class, testMicroService));
-    
+
         // Test concurrent subscription
         int threadCount = 10;
         CountDownLatch latch = new CountDownLatch(threadCount);
@@ -143,19 +143,25 @@ class MessageBusTest {
     @Test
     void complete() {
         // Test completing a task
-        messageBus.register(testMicroService);
-        messageBus.completeTask(testMicroService, 1, ExampleEvent.class);
-        assertEquals(1, testMicroService.getCompletedTasks().size());
+        // Create a mock event and result
+        Event<String> mockEvent = new Event<String>() {
+        };
+        String mockResult = "Test Result";
 
-        // Test completing a task without being registered
-        assertThrows(IllegalStateException.class, () -> messageBus.completeTask(unregisteredService, 1, ExampleEvent.class));
+        // Create a future and associate it with the event
+        Future<String> future = new Future<>();
+        messageBus.getEventAndFutureUnresolved().put(mockEvent, future);
 
-        // Test completing a task with an unknown event
-        assertThrows(IllegalArgumentException.class, () -> messageBus.completeTask(testMicroService, 1, UnknownEvent.class));
+        // Call the complete method
+        messageBus.complete(mockEvent, mockResult);
 
-        // Test completing a task after unregistering
-        messageBus.unregister(testMicroService);
-        messageBus.completeTask(testMicroService, 1, ExampleEvent.class);
+        // Assert that the future is resolved with the correct result
+        assertTrue(future.isDone());
+        assertEquals(mockResult, future.get());
+
+        // Assert that the event is removed from the unresolved map
+        assertFalse(messageBus.getEventAndFutureUnresolved().containsKey(mockEvent));
+        
     }
 
     @Test

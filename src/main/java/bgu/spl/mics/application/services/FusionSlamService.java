@@ -39,7 +39,7 @@ import bgu.spl.mics.application.objects.TrackedObject;
  */
 public class FusionSlamService extends MicroService {
     private final FusionSlam fusionSlam;
-    private boolean isTimeServiceOver;
+    private boolean isTimeServiceTerminated;
     private boolean error;
     private final ErrorCoordinator errorCoordinator;
     private HashMap<Integer,List<TrackedObject>> waitingTracked;
@@ -53,7 +53,7 @@ public class FusionSlamService extends MicroService {
         super("FusionSlam");
         this.errorCoordinator = ErrorCoordinator.getInstance();
         this.fusionSlam = fusionSlam;
-        this.isTimeServiceOver = false;
+        this.isTimeServiceTerminated = false;
         this.waitingTracked = new HashMap<>();
         this.error = false;
     }
@@ -67,14 +67,17 @@ public class FusionSlamService extends MicroService {
     protected void initialize() {
         
         System.out.println(getName() + " started");
+        // Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
             StatisticalFolder.getInstance().incrementSystemRunTime(1);
         });
 
+        // Handle TrackedObjectsEvent
         subscribeEvent(TrackedObjectsEvent.class, trackedObj -> { 
             handleTrackedObjectsEvent(trackedObj);
         });
 
+        // Handle PoseEvent
         subscribeEvent(PoseEvent.class, pose -> {
             fusionSlam.addPose(pose.getPose());
             List<TrackedObject> ObjectsToUpdate = waitingTracked.get(pose.getPose().getTime());
@@ -85,17 +88,19 @@ public class FusionSlamService extends MicroService {
             }
         });
 
+        // Handle TerminatedBroadcast
         subscribeBroadcast(TerminatedBroadcast.class, terminate -> {
             // Time Service was terminated 
             if (terminate.getSenderName().equals("TimeService"))
-                isTimeServiceOver = true;
+                isTimeServiceTerminated = true;
+            // fix this put substring c 
             if(terminate.getSenderType().equals("Camera")){
                 fusionSlam.decrementCameraCount();
             }
-            if (!terminate.getSenderType().equals("FusionSlam") && !terminate.getSenderType().equals("TimeService"))
+            if (!terminate.getSenderName().equals("TimeService"))
                 fusionSlam.decrementMicroserviceCount(); 
             // All other microservices finished their run
-            if (fusionSlam.getMicroservicesCounter() == 0 && isTimeServiceOver){
+            if (fusionSlam.getMicroservicesCounter() == 0 && isTimeServiceTerminated){
                 createOutputFile();
                 terminate(); // Fusion Slum's Time to finish 
             }
@@ -111,12 +116,13 @@ public class FusionSlamService extends MicroService {
     private void handleTrackedObjectsEvent(TrackedObjectsEvent trackedObj){
         List<TrackedObject> trackedObjects = trackedObj.getTrackedObjects();
         for (TrackedObject trackO: trackedObjects){
-            if (trackO.getTime() <= fusionSlam.getPoses().size()-1){
+            // If fusion slum holds the relevent pose 
+            if (trackO.getTime() <= fusionSlam.getPoses().size()){
                 updateLandMarks(trackO,fusionSlam.getPoses().get(trackO.getTime()-1));
             }
             else{
                 List<TrackedObject> alreadyWaiting = waitingTracked.get(trackO.getTime());
-                if (alreadyWaiting!=null){
+                if (alreadyWaiting !=null ){
                     alreadyWaiting.add(trackO);
                 }
                 else{
@@ -128,31 +134,12 @@ public class FusionSlamService extends MicroService {
         }
     }
 
-    // private void kupdateLandMarks(TrackedObjectsEvent trackedObj){
-    //     List<TrackedObject> trackedObjects = trackedObj.getTrackedObjects();
-    //     for (TrackedObject trackO: trackedObjects){
-    //         List<CloudPoint> globaCloudPoints = fusionSlam.poseTranformation(currentPose, trackO.getCoordinates());
-    //         // Adding New LandMark
-    //         if (fusionSlam.getLandMarks().get(trackO.getId()) == null){
-    //             LandMark newLandMark = new LandMark(trackO.getId(), trackO.getDescription(), globaCloudPoints);
-    //             fusionSlam.addLandMark(newLandMark);
-    //             fusionSlam.getLandMarks().put(newLandMark.getId(), newLandMark);
-    //             StatisticalFolder.getInstance().incrementLandmarks(1);
-    //         } 
-    //         // Improving Coordinates 
-    //         else{
-    //             fusionSlam.updateLandMark(fusionSlam.getLandMarks().get(trackO.getId()),globaCloudPoints);
-    //         }
-    //     }
-    // }
-
     private void updateLandMarks(TrackedObject trackedObject,Pose currentPose){
-        // Adding New LandMark
         List<CloudPoint> globaCloudPoints = fusionSlam.poseTranformation(currentPose, trackedObject.getCoordinates());
+        // Adding New LandMark
         if (fusionSlam.getLandMarks().get(trackedObject.getId()) == null){
             LandMark newLandMark = new LandMark(trackedObject.getId(), trackedObject.getDescription(), globaCloudPoints);
             fusionSlam.addLandMark(newLandMark);
-            fusionSlam.getLandMarks().put(newLandMark.getId(), newLandMark);
             StatisticalFolder.getInstance().incrementLandmarks(1);
         } 
         // Improving Coordinates 
@@ -173,8 +160,7 @@ public class FusionSlamService extends MicroService {
             outputData.put("faultySensor", errorCoordinator.getFaultSensor());
             outputData.put("lastCamerasFrame",errorCoordinator.getLastFramesCameras());
             outputData.put("lastLiDarWorkerTrackersFrame",errorCoordinator.getLastFramesLidars());
-            outputData.put("poses", fusionSlam.getPoses());
-            outputData.put("poses",fusionSlam.getPoses());
+            outputData.put("poses", errorCoordinator.getRobotPoses());
             outputData.put("statistics",StatisticalFolder.getInstance());
         }
         else{

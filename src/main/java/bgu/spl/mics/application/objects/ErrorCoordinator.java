@@ -7,8 +7,10 @@ public class ErrorCoordinator {
     private static class ErrorCoordinatorHolder {
         private static ErrorCoordinator instance = new ErrorCoordinator();
     }
+
     private List<LastFrameCamera> lastFramesCameras;
     private List<LastFrameLidar> lastFramesLidars;
+    private List<Pose> robotPoses;
     private Object lockLastFramesCameras;
     private Object lockLastFramesLidars;
     private boolean isCrashed = false;
@@ -21,6 +23,7 @@ public class ErrorCoordinator {
      private ErrorCoordinator() {
         this.lastFramesCameras = new LinkedList<>();
         this.lastFramesLidars = new LinkedList<>();
+        this.robotPoses = new LinkedList<>();
         this.lockLastFramesCameras = new Object();
         this.lockLastFramesLidars = new Object();
     }
@@ -74,6 +77,10 @@ public class ErrorCoordinator {
         }
     }
 
+    public List<Pose> getRobotPoses() {
+        return this.robotPoses;
+    }
+
     public synchronized void setCrashed(String faultSensor,int crashedTick, String crashType) {
         if (!isCrashed){
             this.faultSensor = faultSensor;
@@ -108,6 +115,10 @@ public class ErrorCoordinator {
      */
     public synchronized String getCrashType() {
         return crashType;
+    }
+
+    public void setRobotPoses(Pose pose) {
+        robotPoses.add(pose);
     }
 
 }

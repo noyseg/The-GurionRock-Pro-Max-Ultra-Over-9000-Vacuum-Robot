@@ -6,8 +6,8 @@ import bgu.spl.mics.application.messages.CrashedBroadcast;
 import bgu.spl.mics.application.messages.PoseEvent;
 import bgu.spl.mics.application.messages.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.TickBroadcast;
+import bgu.spl.mics.application.objects.FusionSlam;
 import bgu.spl.mics.application.objects.GPSIMU;
-import bgu.spl.mics.application.objects.Pose;
 import bgu.spl.mics.application.objects.STATUS;
 
 /**
@@ -16,7 +16,6 @@ import bgu.spl.mics.application.objects.STATUS;
  */
 public class PoseService extends MicroService {
     private final GPSIMU gpsimu;
-    private Pose currentPose;
 
     /**
      * Constructor for PoseService.
@@ -26,7 +25,6 @@ public class PoseService extends MicroService {
     public PoseService(GPSIMU gpsimu) {
         super("GPSIMU");
         this.gpsimu = gpsimu;
-        this.currentPose = null; // do it first at pose 0 or 1 
     }
 
     /**
@@ -35,36 +33,34 @@ public class PoseService extends MicroService {
      */
     @Override
     protected void initialize() {
+        // Handle TickBroadcast 
         subscribeBroadcast(TickBroadcast.class, tick -> {
-            processTick(tick);
+            if (gpsimu.getStatus() == STATUS.UP){
+                processTick(tick);
+            }
         });
 
-        // Handle CrashedBroadcast (if needed)
+        // Handle CrashedBroadcast 
         subscribeBroadcast(CrashedBroadcast.class, crash -> {
+            gpsimu.setStatus(STATUS.DOWN);
             sendBroadcast(new TerminatedBroadcast(getName(),getName()));
-            // Print the most recent poses? for the current camera
+            terminate();  
         });
-
-    }
-
-    private void setPose(){
-        this.currentPose = gpsimu.getPose();
+        // Handle CrashedBroadcast 
+        subscribeBroadcast(TerminatedBroadcast.class, terminate -> {
+            // Only Pose Service was left 
+            if (terminate.getSenderName().equals("TimeService") || FusionSlam.getInstance().getMicroservicesCounter() == 1){
+                gpsimu.setStatus(STATUS.DOWN);
+                sendBroadcast(new TerminatedBroadcast(getName(),getName()));
+                terminate();  
+            }
+        });
     }
 
     private void processTick(TickBroadcast tick) {
         gpsimu.setCurrentTick(tick.getCurrentTime());
-        setPose();
-        PoseEvent poseEvent = new PoseEvent(currentPose,getName());
+        PoseEvent poseEvent = new PoseEvent(gpsimu.getPose());
+        gpsimu.updateLastPose();
         Future<Boolean> future = (Future<Boolean>) sendEvent(poseEvent);
-        try {
-            if (future.get() == false) {
-                System.out.println("Fusion Slum could not get Point");
-                sendBroadcast(new TerminatedBroadcast(getName(),getName()));
-                terminate();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            sendBroadcast(new CrashedBroadcast(getName(),getName())); // why this the handle? itself did not crash 
-        }
     }
 }

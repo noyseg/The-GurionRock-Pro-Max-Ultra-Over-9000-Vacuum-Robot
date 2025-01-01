@@ -15,6 +15,7 @@ import bgu.spl.mics.application.objects.CameraProcessed;
 import bgu.spl.mics.application.objects.DetectedObject;
 import bgu.spl.mics.application.objects.ErrorCoordinator;
 import bgu.spl.mics.application.objects.LastFrameCamera;
+import bgu.spl.mics.application.objects.LastFrameLidar;
 import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
 import bgu.spl.mics.example.messages.ExampleBroadcast;
@@ -28,8 +29,9 @@ import bgu.spl.mics.example.messages.ExampleBroadcast;
  */
 public class CameraService extends MicroService {
     private final Camera camera;
-    private LinkedList<CameraProcessed> cpList; // List of camera data objects (time stamp+freq and detectedObjects)
+    private LinkedList<CameraProcessed> cameraProcessedList; // List of camera data objects (time stamp+freq and detectedObjects)
     private List<DetectedObject> lastDetectedObj;
+    private int lastDetectedObjTime;
 
     /**
      * Constructor for CameraService.
@@ -37,9 +39,9 @@ public class CameraService extends MicroService {
      * @param camera The Camera object that this service will use to detect objects.
      */
     public CameraService(Camera camera) {
-        super(camera.getName() + camera.getID());
+        super(camera.getName());
         this.camera = camera;
-        this.cpList = new LinkedList<>();
+        this.cameraProcessedList = new LinkedList<>();
         lastDetectedObj = new LinkedList<DetectedObject>();
     }
 
@@ -51,27 +53,30 @@ public class CameraService extends MicroService {
      */
     @Override
     protected void initialize() {
-        // Subscribe to TickBroadcast, TerminatedBroadcast, CrashedBroadcast.
+        System.out.println(getName() + " started");
+        // Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
             if (camera.getStatus() == STATUS.UP) {
                 processTick(tick);
             }
         });
 
-        // Subscribe to TerminateBroadcast to gracefully shut down
+        // Handle TerminatedBroadcast
         subscribeBroadcast(TerminatedBroadcast.class, terminate -> {
             if (terminate.getSenderName().equals("TimeService")) {
                 camera.setStatus(STATUS.DOWN);
-                sendBroadcast(new TerminatedBroadcast(getName(),camera.getName()));
+                sendBroadcast(new TerminatedBroadcast(getName(),camera.getType()));
                 terminate();
             }
         });
 
-        // Handle CrashedBroadcast (if needed)
+        // Handle CrashedBroadcast 
         subscribeBroadcast(CrashedBroadcast.class, crash -> {
             camera.setStatus(STATUS.DOWN);
-            sendBroadcast(new TerminatedBroadcast(getName(),camera.getName()));
-            // Print the most recent detectedObjects for the current camera
+            sendBroadcast(new TerminatedBroadcast(getName(),camera.getType()));
+            LastFrameCamera lf = new LastFrameCamera(getName(), lastDetectedObjTime, lastDetectedObj);
+            ErrorCoordinator.getInstance().setLastFramesCameras(lf);
+            terminate();
         });
     }
 
@@ -81,55 +86,45 @@ public class CameraService extends MicroService {
      * @param tick The TickBroadcast containing the current time.
      */
     private void processTick(TickBroadcast tick) {
+        // Potential detected objects at tick time 
         StampedDetectedObjects nextDetectedObjects = camera.getDetectedObjectsList().get(0);
+        int tickTime = tick.getCurrentTime();
         int timeOfDetectedObjects = nextDetectedObjects.getTime();
         // Proccesing the images that the camera detect in current time, if exist. 
-        if (tick.getCurrentTime() == timeOfDetectedObjects) {
+        if (tickTime == timeOfDetectedObjects) {
             for (DetectedObject dob : nextDetectedObjects.getDetectedObjects()) {
-                if (dob.getID() == "ERROR") {
-                    System.out.println("ERROR -" + dob.getDescription());
-                    System.out.println("Camera Sensor with the name" + getName() + " caused the error");
-                    System.out.println("the last detected object caught by the cemra are: ");// להשלים
+                // Error was detected 
+                if (dob.getID().equals("ERROR")) {
                     camera.setStatus(STATUS.ERROR);
-                    sendBroadcast(new CrashedBroadcast(getName(),camera.getName()));
-                    LastFrameCamera lf = new LastFrameCamera(getName(),tick.getCurrentTime(),lastDetectedObj);
+                    sendBroadcast(new CrashedBroadcast(getName(),camera.getType()));
+                    lastDetectedObjTime = tickTime;
+                    LastFrameCamera lf = new LastFrameCamera(getName(),lastDetectedObjTime ,lastDetectedObj);
                     ErrorCoordinator.getInstance().setLastFramesCameras(lf);
-                    ErrorCoordinator.getInstance().setCrashed(getName(), tick.getCurrentTime(), camera.getName());
+                    ErrorCoordinator.getInstance().setCrashed(getName(), tickTime, camera.getType());
                     terminate();
                 }
             }
-            CameraProcessed dobjWithFreq = new CameraProcessed(tick.getCurrentTime() + camera.getFrequency(),
-                    nextDetectedObjects);
-            cpList.add(dobjWithFreq);
-            lastDetectedObj = camera.getDetectedObjectsList().get(0).getDetectedObjects();
-            StatisticalFolder.getInstance().incrementDetectedObjects(camera.getDetectedObjectsList().remove(0).getDetectedObjects().size());
+            // Case that no error was detected 
+            if (camera.getStatus() == STATUS.UP){
+                CameraProcessed dobjWithFreq = new CameraProcessed(tickTime + camera.getFrequency(),nextDetectedObjects);
+                cameraProcessedList.add(dobjWithFreq);
+                lastDetectedObj = nextDetectedObjects.getDetectedObjects();
+                lastDetectedObjTime = tickTime;
+                StatisticalFolder.getInstance().incrementDetectedObjects(camera.getDetectedObjectsList().remove(0).getDetectedObjects().size());
+            }
         }
-        // לחשוב לשנות לפתרון נאיבי שעובר בלולאה על הרשימה במצלמה
-
-        // camera.getDetectedObjectsList().get(0).getDetectedObjects();
-        if (cpList.getFirst() != null && cpList.getFirst().getProcessionTime() == tick.getCurrentTime()){
-            CameraProcessed toLidar = cpList.removeFirst();
-            StampedDetectedObjects stampedToLiDar = toLidar.getDetectedObject();
+        // Objects are ready to be sent to lidar  
+        if (camera.getStatus() == STATUS.UP && cameraProcessedList.getFirst() != null && cameraProcessedList.getFirst().getProcessionTime() == tick.getCurrentTime()){
+            CameraProcessed toLidar = cameraProcessedList.removeFirst(); 
+            StampedDetectedObjects stampedToLiDar = toLidar.getDetectedObject(); // The dectedObjects to be sent
             DetectObjectsEvent doe = new DetectObjectsEvent(stampedToLiDar, stampedToLiDar.getTime() ,getName());
             Future<Boolean> future = (Future<Boolean>) sendEvent(doe);
-            try {
-                if (future.get() == false) {
-                    System.out.println("No LiDar manage to tracked the objects");
-                    sendBroadcast(new TerminatedBroadcast(getName(),camera.getName()));
-                    terminate();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                //sendBroadcast(new CrashedBroadcast(getName(),5));
-            }
         }
-
-        // if camera is empty --- לבדוק אם קורה בזמן הנוכחי או בזמן הבא
-        if (camera.getDetectedObjectsList().isEmpty()) {
+        // Camera does not have any other detectedObject, it can be terminated
+        if (camera.getStatus() == STATUS.UP && camera.getDetectedObjectsList().isEmpty()) {
             camera.setStatus(STATUS.DOWN);
-            sendBroadcast(new TerminatedBroadcast(getName(),camera.getName()));
+            sendBroadcast(new TerminatedBroadcast(getName(),camera.getType()));
             terminate();
         }
-
     }
 }

@@ -76,10 +76,21 @@ public class LiDarDataBase {
         return stampedCloudPoints;
     }
 
-
-
     public Map<ObjectDataTracker, List<List<Double>>>  getstampedCloudPointsMap() {
         return stampedCloudPointsMap;
+    }
+
+    public boolean lidarErrorInTime(int time){
+        for (StampedCloudPoints stm: this.stampedCloudPoints){
+            if (stm.getTime() == time){
+                if (stm.equals("ERROR")){ // Check Error or error
+                    return true;
+                }
+            }
+            if (stm.getTime() > time)
+                return false;
+        }
+        return false;
     }
 }
 
