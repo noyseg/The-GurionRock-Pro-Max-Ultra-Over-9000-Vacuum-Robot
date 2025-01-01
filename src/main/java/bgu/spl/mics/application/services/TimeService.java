@@ -46,8 +46,11 @@ public class TimeService extends MicroService {
                     // Increment the tick counter
                     currentTick++;
 
+                    System.out.println("Time Service: "+ currentTick);
+
                     // Broadcast the TickBroadcast message
                     if (FusionSlam.getInstance().getMicroservicesCounter() > 0){
+                        StatisticalFolder.getInstance().incrementSystemRunTime(1);
                         sendBroadcast(new TickBroadcast(getName(),currentTick));
                         // Sleep for tickTime duration
                         Thread.sleep(tickTime*1000);

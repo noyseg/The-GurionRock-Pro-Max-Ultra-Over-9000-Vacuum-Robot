@@ -69,7 +69,7 @@ public class FusionSlamService extends MicroService {
         System.out.println(getName() + " started");
         // Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
-            StatisticalFolder.getInstance().incrementSystemRunTime(1);
+        //    StatisticalFolder.getInstance().incrementSystemRunTime(1);
         });
 
         // Handle TrackedObjectsEvent
@@ -94,7 +94,7 @@ public class FusionSlamService extends MicroService {
             if (terminate.getSenderName().equals("TimeService"))
                 isTimeServiceTerminated = true;
             // Camera was finished 
-            if(terminate.getSenderName().startsWith("C")){
+            if(terminate.getSenderName().startsWith("c")){
                 fusionSlam.decrementCameraCount();
             }
             if (!terminate.getSenderName().equals("TimeService"))

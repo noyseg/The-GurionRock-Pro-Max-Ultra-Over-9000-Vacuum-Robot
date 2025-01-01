@@ -58,4 +58,15 @@ public class Camera {
         return this.name;
     }
 
+        @Override
+    public String toString() {
+        return "Camera{" +
+            "id=" + id +
+            ", name='" + name + '\'' +
+            ", frequency=" + frequency +
+            ", status=" + status +
+            ", detectedObjectsList=" + detectedObjectsList.toArray().toString() +
+            '}';
+        }
 }
+         

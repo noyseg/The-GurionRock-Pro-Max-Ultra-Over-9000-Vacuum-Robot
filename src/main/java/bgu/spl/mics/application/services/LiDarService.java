@@ -82,17 +82,19 @@ public class LiDarService extends MicroService {
     }
     
     private void processTick(TickBroadcast tick){
+        System.out.println(getName() + tick.getCurrentTime());
         this.currentTick = tick.getCurrentTime();
         // lidarErrorInTime will return true if there is an error
-        if (lidarWorker.getlLiDarDataBase().lidarErrorInTime(tick.getCurrentTime())){
+        if (lidarWorker.getLiDarDataBase().lidarErrorInTime(currentTick)){
             LastFrameLidar lf = new LastFrameLidar(getName(), lidarWorker.getLastTrackedObjectList());
             ErrorCoordinator.getInstance().setLastFramesLidars(lf);
-            ErrorCoordinator.getInstance().setCrashed(getName(), this.currentTick, "Lidar disconnected");
+            ErrorCoordinator.getInstance().setCrashed(getName(), currentTick, "Lidar disconnected");
             sendBroadcast(new CrashedBroadcast(getName()));
             terminate();
         }
         else{
             // Lidar need to be finished - no more cameras to send him data 
+            System.out.println((eventsToProcess.isEmpty()+"sdf"));
             if (eventsToProcess.isEmpty() && FusionSlam.getInstance().getCamerasCounter() == 0){
                 sendBroadcast(new TerminatedBroadcast(getName()));
                 terminate();

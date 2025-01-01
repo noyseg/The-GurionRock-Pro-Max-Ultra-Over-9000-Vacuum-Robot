@@ -5,7 +5,7 @@ package bgu.spl.mics.application.objects;
  * Includes x, y coordinates and the yaw angle relative to a global coordinate system.
  */
 public class Pose {
-    private final int Time;
+    private final int time;
     private final float x;
     private final float y;
     private final float yaw;
@@ -18,8 +18,8 @@ public class Pose {
      * @param yaw  The yaw angle (orientation) of the pose
      * @param time The timestamp for the pose
      */
-    public Pose(float x, float y, float yaw, int Time) {
-        this.Time = Time;
+    public Pose(float x, float y, float yaw, int time) {
+        this.time = time;
         this.x = x;
         this.y = y;
         this.yaw = yaw;
@@ -50,7 +50,7 @@ public class Pose {
      * @return The timestamp for the pose
      */
     public int getTime() {
-        return Time;
+        return time;
     }
 
     @Override
@@ -59,7 +59,7 @@ public class Pose {
                 "x=" + x +
                 ", y=" + y +
                 ", yaw=" + yaw +
-                ", time=" + Time +
+                ", time=" + time +
                 '}';
     }
 }

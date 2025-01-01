@@ -1,22 +1,22 @@
 package bgu.spl.mics.application.objects;
 
-public class CameraInformation {
+public class CamerasConfigurations {
 
     private int id;
     private int frequency;
-    private String cameraKey;
+    private String camera_key;
 
     /**
      * Parameterized constructor to initialize CameraData.
      *
      * @param id        The unique identifier for the camera.
      * @param frequency The frequency of data capture.
-     * @param cameraKey The key or name of the camera.
+     * @param camera_key The key or name of the camera.
      */
-    public CameraInformation(int id, int frequency, String cameraKey) {
+    public CamerasConfigurations(int id, int frequency, String camera_key) {
         this.id = id;
         this.frequency = frequency;
-        this.cameraKey = cameraKey;
+        this.camera_key = camera_key;
     }
 
     /**
@@ -55,16 +55,16 @@ public class CameraInformation {
      * @return The key or name of the camera.
      */
     public String getCameraKey() {
-        return cameraKey;
+        return camera_key;
     }
 
     /**
      * Sets the key or name of the camera.
      *
-     * @param cameraKey The key or name to set.
+     * @param camera_key The key or name to set.
      */
-    public void setCameraKey(String cameraKey) {
-        this.cameraKey = cameraKey;
+    public void setCameraKey(String camera_key) {
+        this.camera_key = camera_key;
     }
 
     @Override
@@ -72,7 +72,7 @@ public class CameraInformation {
         return "CameraInformation{" +
                 "id=" + id +
                 ", frequency=" + frequency +
-                ", cameraKey='" + cameraKey + '\'' +
+                ", cameraKey='" + camera_key + '\'' +
                 '}';
     }
 }

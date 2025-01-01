@@ -2,10 +2,10 @@ package bgu.spl.mics.application.objects;
 
 import java.util.List;
 
-public class Lidars {
+public class LiDarWorkers {
 
-    private List<LidarData>lidars;
-    private String lidarDataPath;
+    private List<LidarConfigurations> LidarConfigurations;
+    private String lidars_data_path;
 
     /**
      * Constructor to initialize with a list of LiDARs and a data path.
@@ -13,16 +13,16 @@ public class Lidars {
      * @param lidars        The list of LiDARs.
      * @param lidarDataPath The path or description of LiDAR data.
      */
-    public Lidars(List<LidarData> lidars, String lidarDataPath) {
-        this.lidars = lidars; 
-        this.lidarDataPath = lidarDataPath;
+    public LiDarWorkers(List<LidarConfigurations> LidarConfigurations, String lidarDataPath) {
+        this.LidarConfigurations = LidarConfigurations; 
+        this.lidars_data_path = lidarDataPath;
     }
 
     /**
      * @return The list of all LiDARs.
      */
-    public List<LidarData> getLidars() {
-        return this.lidars;
+    public List<LidarConfigurations> getLidars() {
+        return this.LidarConfigurations;
     }
 
     /**
@@ -30,8 +30,8 @@ public class Lidars {
      *
      * @param lidars The list of LiDARs.
      */
-    public void setLidars(List<LidarData> lidars) {
-        this.lidars = lidars; 
+    public void setLidars(List<LidarConfigurations> lidars) {
+        this.LidarConfigurations = lidars; 
     }
 
     /**
@@ -39,8 +39,8 @@ public class Lidars {
      *
      * @param lidar The LiDAR to add.
      */
-    public void addLidar(LidarData lidar) {
-        lidars.add(lidar);
+    public void addLidar(LidarConfigurations lidar) {
+        LidarConfigurations.add(lidar);
     }
 
     /**
@@ -48,15 +48,15 @@ public class Lidars {
      *
      * @param lidar The LiDAR to remove.
      */
-    public void removeLidar(LidarData lidar) {
-        lidars.remove(lidar);
+    public void removeLidar(LidarConfigurations lidar) {
+        LidarConfigurations.remove(lidar);
     }
 
     /**
      * @return The path or description of the LiDAR data.
      */
     public String getLidarDataPath() {
-        return lidarDataPath;
+        return lidars_data_path;
     }
 
     /**
@@ -65,14 +65,14 @@ public class Lidars {
      * @param lidarDataPath The new path or description.
      */
     public void setLidarDataPath(String lidarDataPath) {
-        this.lidarDataPath = lidarDataPath;
+        this.lidars_data_path = lidarDataPath;
     }
 
     @Override
     public String toString() {
         return "Lidars{" +
-                "lidars=" + lidars +
-                ", lidarDataPath='" + lidarDataPath + '\'' +
+                "lidars=" + LidarConfigurations +
+                ", lidarDataPath='" + lidars_data_path + '\'' +
                 '}';
     }
     
