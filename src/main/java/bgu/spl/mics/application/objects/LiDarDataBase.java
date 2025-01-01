@@ -37,14 +37,12 @@ public class LiDarDataBase {
      */
     public static LiDarDataBase getInstance(String filePath) {
         LiDarDataBase instance = DataBaseHolder.Instance;
-        synchronized (instance) {
-            if (instance.stampedCloudPoints.isEmpty()) { // Data is only read once
-                instance.loadData(filePath);
-                if (!instance.stampedCloudPoints.isEmpty()){
-                    for(StampedCloudPoints scp: instance.stampedCloudPoints){
-                        ObjectDataTracker key = new ObjectDataTracker(scp.getId(),scp.getTime());
-                        instance.stampedCloudPointsMap.put(key,scp.getCloudPoints());
-                    }
+        if (instance.stampedCloudPoints.isEmpty()) { // Data is only read once
+            instance.loadData(filePath);
+            if (!instance.stampedCloudPoints.isEmpty()){
+                for(StampedCloudPoints scp: instance.stampedCloudPoints){
+                    ObjectDataTracker key = new ObjectDataTracker(scp.getId(),scp.getTime());
+                    instance.stampedCloudPointsMap.put(key,scp.getCloudPoints());
                 }
             }
         }
@@ -83,7 +81,7 @@ public class LiDarDataBase {
     public boolean lidarErrorInTime(int time){
         for (StampedCloudPoints stm: this.stampedCloudPoints){
             if (stm.getTime() == time){
-                if (stm.equals("ERROR")){ // Check Error or error
+                if (stm.equals("ERROR")){ 
                     return true;
                 }
             }
@@ -92,6 +90,7 @@ public class LiDarDataBase {
         }
         return false;
     }
+
 }
 
 

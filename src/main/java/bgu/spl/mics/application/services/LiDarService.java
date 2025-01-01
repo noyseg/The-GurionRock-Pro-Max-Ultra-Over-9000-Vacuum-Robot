@@ -1,11 +1,9 @@
 package bgu.spl.mics.application.services;
-
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
-
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.*;
@@ -68,16 +66,16 @@ public class LiDarService extends MicroService {
         subscribeBroadcast(TerminatedBroadcast.class, Terminated -> {
             if (Terminated.getSenderName().equals("TimeService")) {
                 lidarWorker.setStatus(STATUS.DOWN);
-                sendBroadcast(new TerminatedBroadcast(getName(),lidarWorker.getName()));
+                sendBroadcast(new TerminatedBroadcast(getName()));
                 terminate();
             }
         });
 
         subscribeBroadcast(CrashedBroadcast.class, Crashed -> {
             lidarWorker.setStatus(STATUS.DOWN);
-            LastFrameLidar lf = new LastFrameLidar(getName(), currentTick, lidarWorker.getLastTrackedObjectList());
+            LastFrameLidar lf = new LastFrameLidar(getName(), lidarWorker.getLastTrackedObjectList());
             ErrorCoordinator.getInstance().setLastFramesLidars(lf);
-            sendBroadcast(new TerminatedBroadcast(getName(),lidarWorker.getName())); 
+            sendBroadcast(new TerminatedBroadcast(getName())); 
             terminate();
         });
         // Subscribes to TickBroadcast, TerminatedBroadcast, CrashedBroadcast, DetectObjectsEvent.
@@ -87,24 +85,23 @@ public class LiDarService extends MicroService {
         this.currentTick = tick.getCurrentTime();
         // lidarErrorInTime will return true if there is an error
         if (lidarWorker.getlLiDarDataBase().lidarErrorInTime(tick.getCurrentTime())){
-            List<TrackedObject> 
-            lidarWorker.setLastTrackedObjectList()
-            LastFrameLidar lf = new LastFrameLidar(getName(), currentTick, lidarWorker.getLastTrackedObjectList());
+            LastFrameLidar lf = new LastFrameLidar(getName(), lidarWorker.getLastTrackedObjectList());
             ErrorCoordinator.getInstance().setLastFramesLidars(lf);
-            sendBroadcast(new CrashedBroadcast(getName(),lidarWorker.getName()));
+            ErrorCoordinator.getInstance().setCrashed(getName(), this.currentTick, "Lidar disconnected");
+            sendBroadcast(new CrashedBroadcast(getName()));
             terminate();
         }
         else{
             // Lidar need to be finished - no more cameras to send him data 
             if (eventsToProcess.isEmpty() && FusionSlam.getInstance().getCamerasCounter() == 0){
-                sendBroadcast(new TerminatedBroadcast(getName(),lidarWorker.getName()));
+                sendBroadcast(new TerminatedBroadcast(getName()));
                 terminate();
             }
             // As long as we have detected objects that can be send at this moment
             else{
                 while (!eventsToProcess.isEmpty() && eventsToProcess.peek().getTimeOfDetectedObjects() + lidarWorker.getFrequency() <= currentTick){
                     DetectObjectsEvent dob = eventsToProcess.poll();
-                    processDetectedObjects(dob);
+                    processDetectedObjectEvent(dob);
                 }
                 if (!trackedObjects.isEmpty()){
                     TrackedObjectsEvent tracked = new TrackedObjectsEvent(trackedObjects,getName()); // Sends event to fusion slum
@@ -112,16 +109,6 @@ public class LiDarService extends MicroService {
                     lidarWorker.setLastTrackedObjectList(trackedObjects);
                     this.trackedObjects = new LinkedList<>();
                     Future<Boolean> future = (Future<Boolean>) sendEvent(tracked);
-                    try {
-                        if (future.get() == false) {
-                            System.out.println("Fusion Slum could not handle the tracked objects");
-                            sendBroadcast(new TerminatedBroadcast(getName(),lidarWorker.getName()));
-                            terminate();
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        sendBroadcast(new CrashedBroadcast(getName(),lidarWorker.getName()));
-                    }
                 }
             }
         }
@@ -132,15 +119,7 @@ public class LiDarService extends MicroService {
         List<DetectedObject> detectedObjects = toProcess.getDetectedObjects();
         int time = toProcess.getTime();
         for (DetectedObject doe : detectedObjects){
-            ObjectDataTracker objData = new ObjectDataTracker(doe.getID(),time);
-            List<List<Double>> cloupPointsData = lidarWorker.getlLiDarDataBase().getstampedCloudPointsMap().get(objData);
-            List<CloudPoint> coordinates  = new LinkedList<>();
-            for(List<Double> cp :cloupPointsData){
-                CloudPoint point = new CloudPoint(cp.get(0), cp.get(1));
-                coordinates.add(point);
-            }
-            TrackedObject trackedO = new TrackedObject(time, doe.getID(), doe.getDescription(), coordinates);
-            trackedObjects.add(trackedO);
+            trackedObjects.add(lidarWorker.detectToTrack(doe,time));
         }
         complete(ev, true);
     }
@@ -152,16 +131,7 @@ public class LiDarService extends MicroService {
         List<DetectedObject> detectedObjects = toProcess.getDetectedObjects();  // Extract the DetectedObjects themself
         int time = toProcess.getTime();
         for (DetectedObject doe : detectedObjects){
-            ObjectDataTracker objData = new ObjectDataTracker(doe.getID(),time);
-            List<List<Double>> cloudPointsData = lidarWorker.getlLiDarDataBase().getstampedCloudPointsMap().get(objData); // Gets relevent cloud Points Data from lidar Date Base 
-            List<CloudPoint> coordinates  = new LinkedList<>();
-            // Transform List<List<Double>> to list of CloudPoint
-            for(List<Double> cp :cloudPointsData){
-                CloudPoint point = new CloudPoint(cp.get(0), cp.get(1));
-                coordinates.add(point);
-            }
-            TrackedObject trackedO = new TrackedObject(time, doe.getID(), doe.getDescription(), coordinates);
-            trackedObjectsToSend.add(trackedO);
+            trackedObjectsToSend.add(lidarWorker.detectToTrack(doe,time));
         }
         lidarWorker.setLastTrackedObjectList(trackedObjectsToSend);
         complete(ev, true);

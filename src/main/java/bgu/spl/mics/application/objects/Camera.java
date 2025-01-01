@@ -16,7 +16,6 @@ import bgu.spl.mics.application.messages.TickBroadcast;
  */
 public class Camera {
     private final int id;
-    private final String type;
     private final String name;
     private final int frequency;
     private STATUS status;
@@ -24,8 +23,7 @@ public class Camera {
 
     public Camera(int id, int frequency) {
         this.id = id;
-        this.type = "Camera";
-        this.name = this.type + String.valueOf(this.id);
+        this.name = "Camera" + String.valueOf(this.id);
         this.frequency = frequency;
         this.status = STATUS.UP;
     }
@@ -53,10 +51,6 @@ public class Camera {
 
     public int getID() {
         return id;
-    }
-
-    public String getType(){
-        return this.type;
     }
 
     public String getName(){

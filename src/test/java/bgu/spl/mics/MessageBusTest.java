@@ -23,7 +23,7 @@ class MessageBusTest {
     void setUp() {
         messageBus = MessageBusImpl.getIstance(); // Create a fresh instance
         testMicroService = new TimeService(4, 3);
-        poseEvent = new PoseEvent(new Pose(1.0f, 1.0f, 30.0f, 5), "Test");
+        poseEvent = new PoseEvent(new Pose(1.0f, 1.0f, 30.0f, 5));
         tickBroadcast = new TickBroadcast("TimeService", 5);
 
     }
@@ -161,11 +161,72 @@ class MessageBusTest {
 
         // Assert that the event is removed from the unresolved map
         assertFalse(messageBus.getEventAndFutureUnresolved().containsKey(mockEvent));
-        
+
     }
 
     @Test
     void sendBroadcast() {
+        // Test sending a broadcast to a single subscriber
+        messageBus.register(testMicroService);
+        messageBus.subscribeBroadcast(TickBroadcast.class, testMicroService);
+        TickBroadcast broadcast = new TickBroadcast("TimeService", 1);
+        messageBus.sendBroadcast(broadcast);
+        assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(broadcast));
+        assertTrue(testMicroService.isBroadcastReceived());
+        assertEquals(1, testMicroService.getBroadcastReceivedResult());
+
+        // Test sending a broadcast to multiple subscribers
+        MicroService anotherService = new TimeService(2, 2);
+        messageBus.register(anotherService);
+        messageBus.subscribeBroadcast(TickBroadcast.class, anotherService);
+        TickBroadcast broadcastMulti = new TickBroadcast("TimeService", 2);
+        messageBus.sendBroadcast(broadcastMulti);
+        assertTrue(testMicroService.isBroadcastReceived());
+        assertTrue(anotherService.isBroadcastReceived());
+        assertEquals(2, testMicroService.getBroadcastReceivedResult());
+        assertEquals(2, anotherService.getBroadcastReceivedResult());
+
+        // Test sending a broadcast with no subscribers
+        ExampleBroadcast exampleBroadcast = new ExampleBroadcast("Test");
+        messageBus.sendBroadcast(exampleBroadcast);
+        // No assertion needed, just ensure it doesn't throw an exception
+
+        // Test sending a broadcast to unregistered subscribers
+        MicroService unregisteredService = new TimeService(3, 3);
+        messageBus.subscribeBroadcast(TickBroadcast.class, unregisteredService);
+        TickBroadcast broadcastUnregistered = new TickBroadcast("TimeService", 3);
+        messageBus.sendBroadcast(broadcastUnregistered);
+        assertFalse(unregisteredService.isBroadcastReceived());
+
+        // Test sending multiple broadcasts in succession
+        TickBroadcast broadcast1 = new TickBroadcast("TimeService", 4);
+        TickBroadcast broadcast2 = new TickBroadcast("TimeService", 5);
+        messageBus.sendBroadcast(broadcast1);
+        messageBus.sendBroadcast(broadcast2);
+        assertEquals(5, testMicroService.getBroadcastReceivedResult());
+        assertEquals(5, anotherService.getBroadcastReceivedResult());
+
+        // Test sending a null broadcast (if null is allowed)
+        assertThrows(IllegalArgumentException.class, () -> messageBus.sendBroadcast(null));
+
+        // Test concurrent broadcast sending
+        int threadCount = 10;
+        CountDownLatch latch = new CountDownLatch(threadCount);
+        for (int i = 0; i < threadCount; i++) {
+            final int index = i;
+            new Thread(() -> {
+                TickBroadcast concurrentBroadcast = new TickBroadcast("TimeService", 10 + index);
+                messageBus.sendBroadcast(concurrentBroadcast);
+                latch.countDown();
+            }).start();
+        }
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            fail("Thread interruption occurred");
+        }
+        assertTrue(testMicroService.isBroadcastReceived());
+        assertTrue(anotherService.isBroadcastReceived());
     }
 
     @Test
