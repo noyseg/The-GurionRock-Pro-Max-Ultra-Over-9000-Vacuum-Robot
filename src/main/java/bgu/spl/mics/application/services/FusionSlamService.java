@@ -2,20 +2,16 @@ package bgu.spl.mics.application.services;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import bgu.spl.mics.Broadcast;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.CrashedBroadcast;
 import bgu.spl.mics.application.messages.PoseEvent;
@@ -107,6 +103,7 @@ public class FusionSlamService extends MicroService {
         });
 
         subscribeBroadcast(CrashedBroadcast.class, crash -> { 
+            fusionSlam.decrementMicroserviceCount(); 
             error = true; 
         });
 
@@ -155,6 +152,7 @@ public class FusionSlamService extends MicroService {
   
         // Creating an ArrayList of values 
         ArrayList<LandMark> landMarkslist = new ArrayList<>(values);
+        StatisticalFolder.getInstance().setLandMarkslist(landMarkslist);
         if (error){
             outputData.put("error",errorCoordinator.getDescription());
             outputData.put("faultySensor", errorCoordinator.getFaultSensor());
@@ -168,7 +166,7 @@ public class FusionSlamService extends MicroService {
             outputData.put("numDetectedObjects", StatisticalFolder.getInstance().getNumDetectedObjects());
             outputData.put("numTrackedObjects", StatisticalFolder.getInstance().getNumTrackedObjects());
             outputData.put("numLandmarks", StatisticalFolder.getInstance().getNumLandmarks());
-            outputData.put("landMarks", landMarkslist);
+            outputData.put("landMarks",StatisticalFolder.getInstance().getLandMarks());
         }
         // Serialize to JSON and write to file
         Gson gson = new GsonBuilder().setPrettyPrinting().create();

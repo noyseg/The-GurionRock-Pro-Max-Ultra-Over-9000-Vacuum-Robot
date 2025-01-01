@@ -61,12 +61,12 @@ public class LiDarWorkerTracker {
     }
 
     public TrackedObject detectToTrack(DetectedObject detectedObject, int time){
-        System.out.println(detectedObject);
-        ObjectDataTracker objData = new ObjectDataTracker(detectedObject.getID(),time);
+        //System.out.println(detectedObject);
+        //ObjectDataTracker objData = new ObjectDataTracker(detectedObject.getID(),time);
         //List<List<Double>> cloudPointsData = getLiDarDataBase().getstampedCloudPointsMap().get(objData); // Gets relevent cloud Points Data from lidar Date Base 
         List<List<Double>> cloudPointsData = getLiDarDataBase().getCloudPointsData(time,detectedObject.getID());
         List<CloudPoint> coordinates  = new LinkedList<>();
-        System.out.println(cloudPointsData);
+        //System.out.println(cloudPointsData);
         // Transform List<List<Double>> to list of CloudPoint
         for(List<Double> cp :cloudPointsData){
             CloudPoint point = new CloudPoint(cp.get(0), cp.get(1));

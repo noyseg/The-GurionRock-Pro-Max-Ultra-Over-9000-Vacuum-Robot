@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.objects;
 
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -12,6 +13,7 @@ public class StatisticalFolder {
     private final AtomicInteger numDetectedObjects;
     private final AtomicInteger numTrackedObjects;
     private final AtomicInteger numLandmarks;
+    private ArrayList<LandMark> landMarks;
 
     // Singleton instance
     private static class StatisticalFolderHolder {
@@ -24,6 +26,7 @@ public class StatisticalFolder {
         this.numDetectedObjects = new AtomicInteger(0);
         this.numTrackedObjects = new AtomicInteger(0);
         this.numLandmarks = new AtomicInteger(0);
+        this.landMarks = null;
     }
 
     // Public method to get the singleton instance
@@ -69,5 +72,14 @@ public class StatisticalFolder {
     // Get current landmarks count
     public int getNumLandmarks() {
         return numLandmarks.get();
+    }
+
+    public void setLandMarkslist (ArrayList<LandMark> landMarks){
+        this.landMarks = landMarks;
+    }
+
+
+    public ArrayList<LandMark> getLandMarks(){
+        return this.landMarks;
     }
 }

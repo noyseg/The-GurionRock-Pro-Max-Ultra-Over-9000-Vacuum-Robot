@@ -8,6 +8,7 @@ import bgu.spl.mics.application.messages.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.objects.FusionSlam;
 import bgu.spl.mics.application.objects.GPSIMU;
+import bgu.spl.mics.application.objects.Pose;
 import bgu.spl.mics.application.objects.STATUS;
 
 /**
@@ -48,6 +49,7 @@ public class PoseService extends MicroService {
 
         // Handle CrashedBroadcast 
         subscribeBroadcast(CrashedBroadcast.class, crash -> {
+            System.out.println("Crashed from gpu");
             gpsimu.setStatus(STATUS.DOWN);
             sendBroadcast(new TerminatedBroadcast(getName()));
             terminate();  
@@ -65,8 +67,16 @@ public class PoseService extends MicroService {
 
     private void processTick(TickBroadcast tick) {
         gpsimu.setCurrentTick(tick.getCurrentTime());
-        PoseEvent poseEvent = new PoseEvent(gpsimu.getPose());
-        gpsimu.updateLastPose();
-        Future<Boolean> future = (Future<Boolean>) sendEvent(poseEvent);
+        Pose pose = gpsimu.getPose();
+        if (pose != null){
+            PoseEvent poseEvent = new PoseEvent(gpsimu.getPose());
+            gpsimu.updateLastPose();
+            Future<Boolean> future = (Future<Boolean>) sendEvent(poseEvent);
+        }
+        else{
+            gpsimu.setStatus(STATUS.DOWN);
+            sendBroadcast(new TerminatedBroadcast(getName()));
+            terminate();  
+        }
     }
 }

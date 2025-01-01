@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.objects;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -8,8 +9,8 @@ public class ErrorCoordinator {
         private static ErrorCoordinator instance = new ErrorCoordinator();
     }
 
-    private List<LastFrameCamera> lastFramesCameras;
-    private List<LastFrameLidar> lastFramesLidars;
+    private HashMap<String,StampedDetectedObjects> lastFramesCameras;
+    private HashMap<String,List<TrackedObject>> lastFramesLidars;
     private List<Pose> robotPoses;
     private Object lockLastFramesCameras;
     private Object lockLastFramesLidars;
@@ -21,8 +22,8 @@ public class ErrorCoordinator {
 
      // Private constructor for Singleton pattern
      private ErrorCoordinator() {
-        this.lastFramesCameras = new LinkedList<>();
-        this.lastFramesLidars = new LinkedList<>();
+        this.lastFramesCameras = new HashMap<>();
+        this.lastFramesLidars = new HashMap<>();
         this.robotPoses = new LinkedList<>();
         this.lockLastFramesCameras = new Object();
         this.lockLastFramesLidars = new Object();
@@ -38,9 +39,9 @@ public class ErrorCoordinator {
      *
      * @param newFrame The frame to add.
      */
-    public void setLastFramesCameras(LastFrameCamera newFrame) {
+    public void setLastFramesCameras(String cameraName,StampedDetectedObjects lastDetectedObjects) {
         synchronized (lockLastFramesCameras) {
-            lastFramesCameras.add(newFrame);
+            lastFramesCameras.put(cameraName, lastDetectedObjects);
         }
     }
 
@@ -49,9 +50,9 @@ public class ErrorCoordinator {
      *
      * @param newFrame The frame to add.
      */
-    public void setLastFramesLidars(LastFrameLidar newFrame) {
+    public void setLastFramesLidars(String lidarName,List<TrackedObject> lastTrackedObject) {
         synchronized (lockLastFramesLidars) {
-            lastFramesLidars.add(newFrame);
+            lastFramesLidars.put(lidarName, lastTrackedObject);
         }
     }
 
@@ -60,10 +61,8 @@ public class ErrorCoordinator {
      *
      * @return last frames from cameras.
      */
-    public List<LastFrameCamera> getLastFramesCameras() {
-        synchronized (lockLastFramesCameras) {
-            return this.lastFramesCameras;
-        }
+    public HashMap<String,StampedDetectedObjects> getLastFramesCameras() {
+        return this.lastFramesCameras;
     }
 
     /**
@@ -71,10 +70,8 @@ public class ErrorCoordinator {
      *
      * @return A copy of the last frames from LiDARs.
      */
-    public List<LastFrameLidar> getLastFramesLidars() {
-        synchronized (lockLastFramesLidars) {
-            return this.lastFramesLidars;
-        }
+    public HashMap<String,List<TrackedObject>> getLastFramesLidars() {
+        return this.lastFramesLidars;
     }
 
     public List<Pose> getRobotPoses() {
