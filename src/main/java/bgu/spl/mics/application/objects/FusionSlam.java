@@ -30,14 +30,14 @@ public class FusionSlam {
     }
     private final HashMap<String, LandMark> landMarks;
     private final List<Pose> poses;
-    private final AtomicInteger cameraCounter;
-    private final AtomicInteger microservicesCounter;
+    private int cameraCounter;
+    private int microservicesCounter;
 
     private FusionSlam() {
         this.landMarks = new HashMap<String, LandMark>();
         this.poses = new LinkedList<Pose>();
-        this.cameraCounter = new AtomicInteger(0);
-        this.microservicesCounter = new AtomicInteger(0);
+        this.cameraCounter = 0;
+        this.microservicesCounter = 0;
     }
 
     public static FusionSlam getInstance() {
@@ -48,30 +48,30 @@ public class FusionSlam {
     /**
      * Increments the count of active microservices.
      */
-    public void incrementMicroserviceCount() {
-        microservicesCounter.incrementAndGet();
+    public void setMicroserviceCount(int microservicesCounter) {
+        this.microservicesCounter = microservicesCounter;
     }
 
     /**
      * Decrements the count of active microservices.
      */
     public void decrementMicroserviceCount() {
-        microservicesCounter.decrementAndGet();
+        this.microservicesCounter -= 1;
     }
 
         // Methods for Cameras Count:
     /**
      * Increments the count of active cameras.
      */
-    public void incrementCameraCount() {
-        cameraCounter.incrementAndGet();
+    public void setCameraCount(int cameraCounter) {
+        this.cameraCounter = cameraCounter;
     }
 
     /**
      * Decrements the count of active cameras.
      */
     public void decrementCameraCount() {
-        cameraCounter.decrementAndGet();
+        this.cameraCounter -= 1;
     }
 
     
@@ -144,11 +144,11 @@ public class FusionSlam {
 
     // Get current Microservices Counter
     public int getMicroservicesCounter() {
-        return microservicesCounter.get();
+        return this.microservicesCounter;
     }
 
     // Get current Microservices Counter
     public int getCamerasCounter() {
-        return microservicesCounter.get();
+        return this.cameraCounter;
     }
 }
