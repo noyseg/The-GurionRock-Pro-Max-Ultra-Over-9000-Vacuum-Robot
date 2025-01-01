@@ -2,7 +2,6 @@ package bgu.spl.mics.application;
 
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.ObjectInputFilter.Config;
 import java.lang.reflect.Type;
 import java.util.LinkedList;
 import java.util.List;
