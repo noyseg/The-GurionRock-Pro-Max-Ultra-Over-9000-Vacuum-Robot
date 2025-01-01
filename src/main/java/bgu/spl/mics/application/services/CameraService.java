@@ -82,6 +82,7 @@ public class CameraService extends MicroService {
      * @param tick The TickBroadcast containing the current time.
      */
     private void processTick(TickBroadcast tick) {
+        System.out.println(getName() + tick.getCurrentTime());
         // Potential detected objects at tick time 
         StampedDetectedObjects nextDetectedObjects = camera.getDetectedObjectsList().get(0);
         int tickTime = tick.getCurrentTime();
@@ -117,6 +118,7 @@ public class CameraService extends MicroService {
         }
         // Camera does not have any other detectedObject, it can be terminated
         if (camera.getStatus() == STATUS.UP && camera.getDetectedObjectsList().isEmpty()) {
+            System.out.println(camera.getDetectedObjectsList().isEmpty());
             camera.setStatus(STATUS.DOWN);
             LastFrameCamera lf = new LastFrameCamera(getName(),lastDetectedObjTime ,lastDetectedObj);
             ErrorCoordinator.getInstance().setLastFramesCameras(lf);

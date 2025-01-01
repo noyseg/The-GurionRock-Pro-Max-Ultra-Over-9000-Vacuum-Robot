@@ -42,6 +42,7 @@ public class LiDarDataBase {
             if (!instance.stampedCloudPoints.isEmpty()){
                 for(StampedCloudPoints scp: instance.stampedCloudPoints){
                     ObjectDataTracker key = new ObjectDataTracker(scp.getId(),scp.getTime());
+                    System.out.println(key);
                     instance.stampedCloudPointsMap.put(key,scp.getCloudPoints());
                 }
             }
@@ -76,6 +77,15 @@ public class LiDarDataBase {
 
     public Map<ObjectDataTracker, List<List<Double>>>  getstampedCloudPointsMap() {
         return stampedCloudPointsMap;
+    }
+
+    public List<List<Double>> getCloudPointsData(int time,String id){
+        for (StampedCloudPoints stmp:stampedCloudPoints){
+            if(stmp.getTime() == time && stmp.getId().equals(id)){
+                return stmp.getCloudPoints();
+            }
+        }
+        return null;
     }
 
     public boolean lidarErrorInTime(int time){

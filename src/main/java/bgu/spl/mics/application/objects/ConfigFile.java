@@ -1,34 +1,34 @@
 package bgu.spl.mics.application.objects;
 
 public class ConfigFile {
-  private Cameras cameras;
-  private Lidars lidars;
-  private String poseFilePath;
-  private int tickTime;
-  private int duration;
+  private Cameras Cameras;
+  private LiDarWorkers LiDarWorkers;
+  private String poseJsonFile;
+  private int TickTime;
+  private int Duration;
 
   /**
      * Parameterized constructor to initialize the configuration.
      *
-     * @param cameras       The camera configuration.
-     * @param lidars        The lidar configuration.
-     * @param poseFilePath  The file path for pose data.
-     * @param tickTime      The time duration for each simulation tick.
-     * @param duration      The total duration of the simulation.
+     * @param Cameras       The camera configuration.
+     * @param LiDarWorkers        The lidar configuration.
+     * @param poseJsonFile  The file path for pose data.
+     * @param TickTime      The time duration for each simulation tick.
+     * @param Duration      The total duration of the simulation.
      */
-    public ConfigFile(Cameras cameras, Lidars lidars, String poseFilePath, int tickTime, int duration) {
-        this.cameras = cameras;
-        this.lidars = lidars;
-        this.poseFilePath = poseFilePath;
-        this.tickTime = tickTime;
-        this.duration = duration;
+    public ConfigFile(Cameras Cameras, LiDarWorkers LiDarWorkers, String poseJsonFile, int TickTime, int Duration) {
+        this.Cameras = Cameras;
+        this.LiDarWorkers = LiDarWorkers;
+        this.poseJsonFile = poseJsonFile;
+        this.TickTime = TickTime;
+        this.Duration = Duration;
     }
 
     /**
      * @return The camera configuration.
      */
     public Cameras getCameras() {
-        return cameras;
+        return Cameras;
     }
 
     /**
@@ -37,14 +37,14 @@ public class ConfigFile {
      * @param cameras The camera configuration to set.
      */
     public void setCameras(Cameras cameras) {
-        this.cameras = cameras;
+        this.Cameras = cameras;
     }
 
     /**
      * @return The lidar configuration.
      */
-    public Lidars getLidars() {
-        return lidars;
+    public LiDarWorkers getLidars() {
+        return LiDarWorkers;
     }
 
     /**
@@ -52,15 +52,15 @@ public class ConfigFile {
      *
      * @param lidars The lidar configuration to set.
      */
-    public void setLidars(Lidars lidars) {
-        this.lidars = lidars;
+    public void setLidars(LiDarWorkers LiDarWorkers) {
+        this.LiDarWorkers = LiDarWorkers;
     }
 
     /**
      * @return The file path for pose data.
      */
     public String getPoseFilePath() {
-        return poseFilePath;
+        return poseJsonFile;
     }
 
     /**
@@ -69,14 +69,14 @@ public class ConfigFile {
      * @param poseFilePath The file path to set.
      */
     public void setPoseFilePath(String poseFilePath) {
-        this.poseFilePath = poseFilePath;
+        this.poseJsonFile = poseFilePath;
     }
 
     /**
      * @return The time duration for each simulation tick.
      */
     public int getTickTime() {
-        return tickTime;
+        return TickTime;
     }
 
     /**
@@ -85,14 +85,14 @@ public class ConfigFile {
      * @param tickTime The tick time to set.
      */
     public void setTickTime(int tickTime) {
-        this.tickTime = tickTime;
+        this.TickTime = tickTime;
     }
 
     /**
      * @return The total duration of the simulation.
      */
     public int getDuration() {
-        return duration;
+        return Duration;
     }
 
     /**
@@ -101,17 +101,17 @@ public class ConfigFile {
      * @param duration The duration to set.
      */
     public void setDuration(int duration) {
-        this.duration = duration;
+        this.Duration = duration;
     }
 
     @Override
     public String toString() {
         return "Config{" +
-                "cameras=" + cameras +
-                ", lidars=" + lidars +
-                ", poseFilePath='" + poseFilePath + '\'' +
-                ", tickTime=" + tickTime +
-                ", duration=" + duration +
+                "cameras=" + Cameras +
+                ", lidars=" + LiDarWorkers +
+                ", poseFilePath='" + poseJsonFile + '\'' +
+                ", tickTime=" + TickTime +
+                ", duration=" + Duration +
                 '}';
     }
 }

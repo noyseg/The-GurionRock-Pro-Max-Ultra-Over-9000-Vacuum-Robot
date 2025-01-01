@@ -6,42 +6,34 @@ import java.util.List;
 
 public class Cameras {
 
-    private List<CameraInformation> allCameras;
-    private String cameraData;
-
-    /**
-     * Default constructor initializes an empty list of cameras.
-     */
-    public Cameras() {
-        this.allCameras = new ArrayList<>();
-        this.cameraData = "";
-    }
+    private List<CamerasConfigurations> CamerasConfigurations;
+    private String camera_datas_path;
 
     /**
      * Constructor to initialize with a list of cameras and optional metadata.
      *
-     * @param allCameras The list of cameras.
+     * @param Cameras The list of cameras.
      * @param cameraData Metadata or description about the cameras.
      */
-    public Cameras(List<CameraInformation> allCameras, String cameraData) {
-        this.allCameras = allCameras; // Create a copy for immutability
-        this.cameraData = cameraData;
+    public Cameras(List<CamerasConfigurations> CamerasConfigurations, String camera_datas_path) {
+        this.CamerasConfigurations = CamerasConfigurations; // Create a copy for immutability
+        this.camera_datas_path = camera_datas_path;
     }
 
     /**
      * @return The list of all cameras.
      */
-    public List<CameraInformation> getAllCameras() {
-        return this.allCameras; // Return a copy for immutability
+    public List<CamerasConfigurations> getAllCameras() {
+        return this.CamerasConfigurations; // Return a copy for immutability
     }
 
     /**
      * Sets the list of all cameras.
      *
-     * @param allCameras The new list of cameras.
+     * @param Cameras The new list of cameras.
      */
-    public void setAllCameras(List<CameraInformation> allCameras) {
-        this.allCameras = allCameras; // Create a copy for immutability
+    public void setAllCameras(List<CamerasConfigurations> CamerasConfigurations) {
+        this.CamerasConfigurations = CamerasConfigurations; // Create a copy for immutability
     }
 
     /**
@@ -49,8 +41,8 @@ public class Cameras {
      *
      * @param cameraData The camera to add.
      */
-    public void addCamera(CameraInformation cameraData) {
-        allCameras.add(cameraData);
+    public void addCamera(CamerasConfigurations cameraData) {
+        CamerasConfigurations.add(cameraData);
     }
 
     /**
@@ -58,15 +50,15 @@ public class Cameras {
      *
      * @param cameraData The camera to remove.
      */
-    public void removeCamera(CameraInformation cameraData) {
-        allCameras.remove(cameraData);
+    public void removeCamera(CamerasConfigurations camera) {
+        CamerasConfigurations.remove(camera);
     }
 
     /**
      * @return Metadata or description about the cameras.
      */
     public String getCameraData() {
-        return cameraData;
+        return camera_datas_path;
     }
 
     /**
@@ -74,15 +66,15 @@ public class Cameras {
      *
      * @param cameraData The metadata to set.
      */
-    public void setCameraData(String cameraData) {
-        this.cameraData = cameraData;
+    public void setCameraData(String camera_datas_path) {
+        this.camera_datas_path = camera_datas_path;
     }
 
     @Override
     public String toString() {
         return "Cameras{" +
-                "allCameras=" + allCameras +
-                ", cameraData='" + cameraData + '\'' +
+                "allCameras=" + CamerasConfigurations +
+                ", cameraData='" + camera_datas_path + '\'' +
                 '}';
     }
 }

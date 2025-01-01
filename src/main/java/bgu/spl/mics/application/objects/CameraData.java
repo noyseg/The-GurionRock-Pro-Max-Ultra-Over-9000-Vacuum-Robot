@@ -5,7 +5,7 @@ import java.util.List;
 
 public class CameraData {
 
-    private String cameraName;
+    private String camera_key;
     private List<StampedDetectedObjects> stampedDetected; 
 
     /**
@@ -15,7 +15,7 @@ public class CameraData {
      * @param stampedDetected The list of stamped detected objects.
      */
     public CameraData(String cameraName, List<StampedDetectedObjects> stampedDetected) {
-        this.cameraName = cameraName;
+        this.camera_key = cameraName;
         this.stampedDetected = new ArrayList<>(stampedDetected); // Create a copy for immutability
     }
 
@@ -23,7 +23,7 @@ public class CameraData {
      * @return The name of the camera.
      */
     public String getCameraName() {
-        return cameraName;
+        return camera_key;
     }
 
     /**
@@ -32,7 +32,7 @@ public class CameraData {
      * @param cameraName The name to set.
      */
     public void setCameraName(String cameraName) {
-        this.cameraName = cameraName;
+        this.camera_key = cameraName;
     }
 
     /**
@@ -72,7 +72,7 @@ public class CameraData {
     @Override
     public String toString() {
         return "CameraData{" +
-                "cameraName='" + cameraName + '\'' +
+                "cameraName='" + camera_key + '\'' +
                 ", stampedDetected=" + stampedDetected +
                 '}';
     }

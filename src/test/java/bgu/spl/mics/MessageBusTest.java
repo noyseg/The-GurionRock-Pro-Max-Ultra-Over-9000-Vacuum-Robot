@@ -6,6 +6,7 @@ import bgu.spl.mics.application.objects.Pose;
 import bgu.spl.mics.application.services.TimeService;
 import bgu.spl.mics.example.messages.ExampleBroadcast;
 import bgu.spl.mics.example.messages.ExampleEvent;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -27,6 +28,33 @@ class MessageBusTest {
         tickBroadcast = new TickBroadcast("TimeService", 5);
 
     }
+    @AfterEach
+    void tearDown() {
+        // Unregister the test microservice if it was registered
+        try {
+            messageBus.unregister(testMicroService);
+        } catch (IllegalStateException ignored) {
+            // Ignore exceptions for unregistered services
+        }
+
+        // Unregister any other microservices created during the tests
+        for (MicroService service : messageBus.getMicroServicesQueues().keySet()) {
+            try {
+                messageBus.unregister(service);
+            } catch (IllegalStateException ignored) {
+                // Ignore exceptions for unregistered services
+            }
+        }
+
+        // Clear all subscriptions
+        messageBus.getEventSubscribers().clear();
+        messageBus.getBroadcastSubscribers().clear();
+
+        // Clear all message queues
+        messageBus.getMicroServicesQueues().clear();
+
+    }
+
 
 
     @Test
@@ -228,22 +256,27 @@ class MessageBusTest {
         // Assert the broadcast is inside the microservice's queue'
         assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(poseEvent));
 
-        // Test sending an event to multiple subscribers
-        MicroService anotherService = new TimeService(2, 2);
-        messageBus.register(anotherService);
-        messageBus.subscribeEvent(PoseEvent.class, anotherService);
-        PoseEvent multiEvent = new PoseEvent(new Pose(0,0,0, 5));
-        messageBus.sendEvent(multiEvent);
-        assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(multiEvent));
-        assertTrue(messageBus.getMicroServicesQueues().get(anotherService).contains(multiEvent));
-
         // Test sending multiple events in succession
-        PoseEvent poseevent1 = new PoseEvent(new Pose(1,0,0, 6));
-        PoseEvent poseevent2 = new PoseEvent(new Pose(3,0,0, 2));
+        PoseEvent poseevent1 = new PoseEvent(new Pose(1, 0, 0, 6));
+        PoseEvent poseevent2 = new PoseEvent(new Pose(3, 0, 0, 2));
         messageBus.sendEvent(poseevent1);
         messageBus.sendEvent(poseevent2);
         assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(poseevent1));
         assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(poseevent2));
+
+        // Test sending an event to multiple subscribers and testing round Roobin-Loop
+        MicroService anotherService = new TimeService(2, 2);
+        messageBus.register(anotherService);
+        messageBus.subscribeEvent(PoseEvent.class, anotherService);
+        PoseEvent multiEvent1 = new PoseEvent(new Pose(0, 0, 0, 5));
+        PoseEvent multiEvent2 = new PoseEvent(new Pose(0, 0, 0, 5));
+        messageBus.sendEvent(multiEvent1);
+        messageBus.sendEvent(multiEvent2);
+        assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(multiEvent1));
+        // testMicroService handle the first event so anotherService will handle the second event
+        assertTrue(messageBus.getMicroServicesQueues().get(anotherService).contains(multiEvent2));
+        messageBus.sendEvent(multiEvent2);
+        assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(multiEvent2));
 
         // Test sending a null broadcast (if null is allowed)
 //        assertThrows(IllegalArgumentException.class, () -> messageBus.sendBroadcast(null));
@@ -255,7 +288,7 @@ class MessageBusTest {
         for (int i = 0; i < threadCount; i++) {
             final int index = i;
             new Thread(() -> {
-                PoseEvent concurrentEvent = new PoseEvent(new Pose(8,8,8, 5));
+                PoseEvent concurrentEvent = new PoseEvent(new Pose(8, 8, 8, 5));
                 poseArray[index] = concurrentEvent;
                 messageBus.sendEvent(concurrentEvent);
                 latch.countDown();
@@ -266,10 +299,9 @@ class MessageBusTest {
         } catch (InterruptedException e) {
             fail("Thread interruption occurred");
         }
-        for (PoseEvent p : poseArray) {
-            assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(p));
-            assertTrue(messageBus.getMicroServicesQueues().get(anotherService).contains(p));
-        }
+        // We have sent total of 16 events, the sum of the size of microservices queues should be 16
+        assertEquals(16, messageBus.getMicroServicesQueues().get(testMicroService).size()+messageBus.getMicroServicesQueues().get(anotherService).size());
+
     }
 
 
@@ -382,6 +414,28 @@ class MessageBusTest {
     }
 
     @Test
-    void awaitMessage() {
+    void awaitMessage() throws InterruptedException {
+        MessageBus messageBus = MessageBusImpl.getIstance();
+        MicroService microService = new TimeService(1, 1);
+    
+        messageBus.register(microService);
+    
+        // Create and send a test message
+        PoseEvent testEvent = new PoseEvent(new Pose(1.0f, 1.0f, 30.0f, 5));
+        messageBus.subscribeEvent(PoseEvent.class, microService);
+        Future<Boolean> future = messageBus.sendEvent(testEvent);
+    
+        // Test awaiting and receiving the message
+        Message receivedMessage = messageBus.awaitMessage(microService);
+        assertNotNull(receivedMessage);
+        assertInstanceOf(PoseEvent.class, receivedMessage);
+        assertEquals(testEvent, receivedMessage);
+    
+        // Test throwing IllegalStateException for unregistered MicroService
+        MicroService unregisteredService = new TimeService(2, 2);
+        assertThrows(IllegalStateException.class, () -> messageBus.awaitMessage(unregisteredService));
+    
+        // Clean up
+        messageBus.unregister(microService);
     }
 }

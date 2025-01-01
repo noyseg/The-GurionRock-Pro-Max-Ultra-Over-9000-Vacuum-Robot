@@ -1,6 +1,6 @@
 package bgu.spl.mics.application.objects;
 
-public class LidarData {
+public class LidarConfigurations {
     
     private int id;
     private int frequency;
@@ -11,7 +11,7 @@ public class LidarData {
      * @param id        The unique identifier for the LiDAR.
      * @param frequency The frequency of data capture or processing.
      */
-    public LidarData(int id, int frequency) {
+    public LidarConfigurations(int id, int frequency) {
         this.id = id;
         this.frequency = frequency;
     }

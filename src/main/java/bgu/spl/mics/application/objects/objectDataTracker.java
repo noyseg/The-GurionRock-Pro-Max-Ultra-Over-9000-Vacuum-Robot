@@ -17,5 +17,13 @@ public class ObjectDataTracker {
         return this.time;
     }
 
+    @Override
+    public String toString() {
+        return "ObjectDataTracker{" +
+               "id='" + id + '\'' +
+               ", time=" + time +
+               '}';
+    }
+
 
 }
