@@ -21,10 +21,11 @@ public class Camera {
     private STATUS status;
     private List<StampedDetectedObjects> detectedObjectsList; // List of detected objects with timestamps
 
-    public Camera(int id, int frequency) {
+    public Camera(int id, String name, int frequency, List<StampedDetectedObjects> detectedObjectsList ) {
         this.id = id;
-        this.name = "Camera" + String.valueOf(this.id);
+        this.name = name;
         this.frequency = frequency;
+        this.detectedObjectsList = detectedObjectsList;
         this.status = STATUS.UP;
     }
 
