@@ -53,63 +53,97 @@ public class GurionRockRunner {
             Gson gson = new Gson();
             ConfigFile config = gson.fromJson(mainReader, ConfigFile.class);
             System.out.println("Initializing simulation components...");
-            TimeService timeService = new TimeService(config.getTickTime(), config.getDuration());
             FusionSlamService FusionSlamService = new FusionSlamService(FusionSlam.getInstance());
              // Initialize cameras
-             List<CameraService> camerasServices = new LinkedList<>(); 
-            if (config.getCameras() != null){
-                String cameraPath = config.getCameras().getCameraData();
-                List<CameraInformation> allCameras = config.getCameras().getAllCameras();
-                try (FileReader reader = new FileReader(cameraPath)) {
-                    Type listType = new TypeToken<List<CameraData>>() {}.getType();
-                    List<CameraData> cameraData = gson.fromJson(reader, listType);
-                    System.out.println("Initializing camera's components...");
-                    for (CameraData camera: cameraData){
-                        for (CameraInformation cameraInfo: allCameras){
-                            if (camera.getCameraName().equals(cameraInfo.getCameraKey())){
-                                Camera newCamera = new Camera(cameraInfo.getId(),cameraInfo.getCameraKey(), cameraInfo.getFrequency(),camera.getStampedDetected());
-                                camerasServices.add(new CameraService(newCamera));
-                            }
-                        }
-                    }
-                }
-                catch (IOException e) {
-                    System.err.println("Failed to load Camera's Data: " + e.getMessage());
-                }
-            }
-            List<LiDarService> LiDarServices = new LinkedList<>(); 
-            if (config.getLidars() != null) {
-                System.out.println("Initializing lidar's components...");
-                String lidarPath = config.getLidars().getLidarDataPath();
-                List<LidarData> allLidar = config.getLidars().getLidars();
-                for (LidarData lidar: allLidar){
-                    LiDarWorkerTracker newLidar = new LiDarWorkerTracker(lidar.getId(),lidar.getFrequency(), lidarPath);
-                    LiDarServices.add(new LiDarService(newLidar));
-                }
-            }
-            List<PoseService> poseService = new LinkedList<>();
-            if (config.getPoseFilePath() != null){
-                try (FileReader reader = new FileReader(config.getPoseFilePath())) {
-                    Type listType = new TypeToken<List<Pose>>() {}.getType();
-                    List<Pose> poses = gson.fromJson(reader, listType);
-                    System.out.println("Initializing GPSIMU's components...");
-                    GPSIMU gps = new GPSIMU(0, poses);
-                    poseService.add(new PoseService(gps));
-                }
-                catch (IOException e) {
-                    System.err.println("Failed to load Poses's Data: " + e.getMessage());
-                }
-            }
+            List<CameraService> camerasServices = initializeCameras(config, gson); 
+            
+            List<LiDarService> liDarServices = initializeLidars(config,gson); 
+
+            PoseService poseService = initializePoseService(config, gson);
+
             FusionSlam.getInstance().setCameraCount(camerasServices.size());
-            FusionSlam.getInstance().setCameraCount(camerasServices.size()+poseService.size()+LiDarServices.size());
+            FusionSlam.getInstance().setCameraCount(camerasServices.size()+1+liDarServices.size());
 
+            List<Thread> microServices = new LinkedList<>();
+            for (CameraService cameraService: camerasServices){
+                microServices.add(new Thread(cameraService));
+            }
+            for (LiDarService lidarService: liDarServices){
+                microServices.add(new Thread(lidarService));
+            }
+            if (poseService != null){
+                microServices.add(new Thread(poseService));
+            }
 
+            microServices.add(new Thread(FusionSlamService));
 
-
+            for (Thread microService:microServices){
+                microService.start();
+            }
+            
+            // need to creat time service after all threads are running 
             System.out.println("Simulation initialized. Starting simulation loop...");
+            Thread timeServiceThread = new Thread(new TimeService(config.getTickTime(), config.getDuration()));
+            timeServiceThread.start();
+            
             // Start the simulation loop or time service (not implemented here)
         } catch (IOException e) {
             System.err.println("Failed to load configuration file: " + e.getMessage());
         }
+    }
+
+    private static List<CameraService> initializeCameras(ConfigFile config, Gson gson) {
+        List<CameraService> camerasServices = new LinkedList<>(); 
+        if (config.getCameras() != null){
+            String cameraPath = config.getCameras().getCameraData();
+            List<CameraInformation> allCameras = config.getCameras().getAllCameras();
+            try (FileReader reader = new FileReader(cameraPath)) {
+                Type listType = new TypeToken<List<CameraData>>() {}.getType();
+                List<CameraData> cameraData = gson.fromJson(reader, listType);
+                System.out.println("Initializing camera's components...");
+                for (CameraData camera: cameraData){
+                    for (CameraInformation cameraInfo: allCameras){
+                        if (camera.getCameraName().equals(cameraInfo.getCameraKey())){
+                            Camera newCamera = new Camera(cameraInfo.getId(),cameraInfo.getCameraKey(), cameraInfo.getFrequency(),camera.getStampedDetected());
+                            camerasServices.add(new CameraService(newCamera));
+                        }
+                    }
+                }
+            }
+            catch (IOException e) {
+                System.err.println("Failed to load Camera's Data: " + e.getMessage());
+            }
+    }
+    return camerasServices;
+    }
+
+    private static List<LiDarService> initializeLidars(ConfigFile config, Gson gson) {
+        List<LiDarService> liDarServices = new LinkedList<>(); 
+        if (config.getLidars() != null) {
+            System.out.println("Initializing lidar's components...");
+            String lidarPath = config.getLidars().getLidarDataPath();
+            List<LidarData> allLidar = config.getLidars().getLidars();
+            for (LidarData lidar: allLidar){
+                LiDarWorkerTracker newLidar = new LiDarWorkerTracker(lidar.getId(),lidar.getFrequency(), lidarPath);
+                liDarServices.add(new LiDarService(newLidar));
+            }
+        }
+        return liDarServices;
+    }
+
+    private static PoseService initializePoseService(ConfigFile config, Gson gson) {
+        if (config.getPoseFilePath() != null){
+            try (FileReader reader = new FileReader(config.getPoseFilePath())) {
+                Type listType = new TypeToken<List<Pose>>() {}.getType();
+                List<Pose> poses = gson.fromJson(reader, listType);
+                System.out.println("Initializing GPSIMU's components...");
+                GPSIMU gps = new GPSIMU(0, poses);
+                return new PoseService(gps);
+            }
+            catch (IOException e) {
+                System.err.println("Failed to load Poses's Data: " + e.getMessage());
+            }
+        }
+        return null;
     }
 }
