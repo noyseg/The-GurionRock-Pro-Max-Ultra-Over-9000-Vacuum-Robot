@@ -16,7 +16,8 @@ public class LastFrameLidar {
      */
     public LastFrameLidar(String name, List<TrackedObject> lastTrackedObjects) {
         this.name = name;
-        this.lastTrackedObjects = lastTrackedObjects != null ? List.copyOf(lastTrackedObjects) : Collections.emptyList();
+//        this.lastTrackedObjects = lastTrackedObjects != null ? List.copyOf(lastTrackedObjects) : Collections.emptyList();
+        this.lastTrackedObjects = lastTrackedObjects;
     }
 
     /**

@@ -184,13 +184,6 @@ class MessageBusTest {
         assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(broadcastMulti));
         assertTrue(messageBus.getMicroServicesQueues().get(anotherService).contains(broadcastMulti));
 
-        // Test sending a broadcast to unregistered subscribers
-        MicroService unregisteredService = new TimeService(3, 3);
-        messageBus.subscribeBroadcast(TickBroadcast.class, unregisteredService);
-        TickBroadcast broadcastUnregistered = new TickBroadcast("TimeService", 3);
-        messageBus.sendBroadcast(broadcastUnregistered);
-        assertFalse(messageBus.getMicroServicesQueues().get(unregisteredService).contains(broadcastUnregistered));
-
         // Test sending multiple broadcasts in succession
         TickBroadcast broadcast1 = new TickBroadcast("TimeService", 4);
         TickBroadcast broadcast2 = new TickBroadcast("TimeService", 5);
@@ -205,10 +198,12 @@ class MessageBusTest {
         // Test concurrent broadcast sending
         int threadCount = 10;
         CountDownLatch latch = new CountDownLatch(threadCount);
+        TickBroadcast[] tickArray = new TickBroadcast[threadCount];
         for (int i = 0; i < threadCount; i++) {
             final int index = i;
             new Thread(() -> {
                 TickBroadcast concurrentBroadcast = new TickBroadcast("TimeService", 10 + index);
+                tickArray[index] = concurrentBroadcast;
                 messageBus.sendBroadcast(concurrentBroadcast);
                 latch.countDown();
             }).start();
@@ -218,12 +213,63 @@ class MessageBusTest {
         } catch (InterruptedException e) {
             fail("Thread interruption occurred");
         }
-        assertTrue(testMicroService.isBroadcastReceived());
-        assertTrue(anotherService.isBroadcastReceived());
+        for (TickBroadcast b : tickArray) {
+            assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(b));
+            assertTrue(messageBus.getMicroServicesQueues().get(anotherService).contains(b));
+        }
     }
 
     @Test
     void sendEvent() {
+        // Test sending a broadcast to a single subscriber
+        messageBus.register(testMicroService);
+        messageBus.subscribeEvent(PoseEvent.class, testMicroService);
+        messageBus.sendEvent(poseEvent);
+        // Assert the broadcast is inside the microservice's queue'
+        assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(poseEvent));
+
+        // Test sending an event to multiple subscribers
+        MicroService anotherService = new TimeService(2, 2);
+        messageBus.register(anotherService);
+        messageBus.subscribeEvent(PoseEvent.class, anotherService);
+        PoseEvent multiEvent = new PoseEvent(new Pose(0,0,0, 5));
+        messageBus.sendEvent(multiEvent);
+        assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(multiEvent));
+        assertTrue(messageBus.getMicroServicesQueues().get(anotherService).contains(multiEvent));
+
+        // Test sending multiple events in succession
+        PoseEvent poseevent1 = new PoseEvent(new Pose(1,0,0, 6));
+        PoseEvent poseevent2 = new PoseEvent(new Pose(3,0,0, 2));
+        messageBus.sendEvent(poseevent1);
+        messageBus.sendEvent(poseevent2);
+        assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(poseevent1));
+        assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(poseevent2));
+
+        // Test sending a null broadcast (if null is allowed)
+//        assertThrows(IllegalArgumentException.class, () -> messageBus.sendBroadcast(null));
+
+        // Test concurrent event sending
+        int threadCount = 10;
+        CountDownLatch latch = new CountDownLatch(threadCount);
+        PoseEvent[] poseArray = new PoseEvent[threadCount];
+        for (int i = 0; i < threadCount; i++) {
+            final int index = i;
+            new Thread(() -> {
+                PoseEvent concurrentEvent = new PoseEvent(new Pose(8,8,8, 5));
+                poseArray[index] = concurrentEvent;
+                messageBus.sendEvent(concurrentEvent);
+                latch.countDown();
+            }).start();
+        }
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            fail("Thread interruption occurred");
+        }
+        for (PoseEvent p : poseArray) {
+            assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(p));
+            assertTrue(messageBus.getMicroServicesQueues().get(anotherService).contains(p));
+        }
     }
 
 

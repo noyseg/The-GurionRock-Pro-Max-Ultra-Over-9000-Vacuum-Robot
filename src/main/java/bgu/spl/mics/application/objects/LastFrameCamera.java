@@ -19,7 +19,8 @@ public class LastFrameCamera {
     public LastFrameCamera(String name, int lastFrameTime, List<DetectedObject> lastDetectedObj) {
         this.name = name;
         this.lastFrameTime = lastFrameTime;
-        this.lastDetectedObj = lastDetectedObj != null ? List.copyOf(lastDetectedObj) : Collections.emptyList();
+//        this.lastDetectedObj = lastDetectedObj != null ? List.copyOf(lastDetectedObj) : Collections.emptyList();
+        this.lastDetectedObj = lastDetectedObj;
     }
 
     /**
