@@ -26,8 +26,8 @@ import bgu.spl.mics.application.objects.StampedDetectedObjects;
 public class CameraService extends MicroService {
     private final Camera camera;
     private LinkedList<CameraProcessed> cameraProcessedList; // List of camera data objects (time stamp+freq and detectedObjects)
-    private List<DetectedObject> lastDetectedObj;
-    private int lastDetectedObjTime;
+    private StampedDetectedObjects lastDetectedObj;
+    //private int lastDetectedObjTime;
 
     /**
      * Constructor for CameraService.
@@ -38,7 +38,7 @@ public class CameraService extends MicroService {
         super(camera.getName());
         this.camera = camera;
         this.cameraProcessedList = new LinkedList<>();
-        lastDetectedObj = new LinkedList<DetectedObject>();
+        lastDetectedObj = new StampedDetectedObjects();
     }
 
     /**
@@ -70,8 +70,8 @@ public class CameraService extends MicroService {
         subscribeBroadcast(CrashedBroadcast.class, crash -> {
             camera.setStatus(STATUS.DOWN);
             sendBroadcast(new TerminatedBroadcast(getName()));
-            LastFrameCamera lf = new LastFrameCamera(getName(), lastDetectedObjTime, lastDetectedObj);
-            ErrorCoordinator.getInstance().setLastFramesCameras(lf);
+            //LastFrameCamera lf = new LastFrameCamera(getName(), lastDetectedObjTime, lastDetectedObj);
+            ErrorCoordinator.getInstance().setLastFramesCameras(getName(), lastDetectedObj);
             terminate();
         });
     }
@@ -82,7 +82,7 @@ public class CameraService extends MicroService {
      * @param tick The TickBroadcast containing the current time.
      */
     private void processTick(TickBroadcast tick) {
-        System.out.println(getName() + tick.getCurrentTime());
+        //System.out.println(getName() + tick.getCurrentTime());
         // Potential detected objects at tick time 
         StampedDetectedObjects nextDetectedObjects = camera.getDetectedObjectsList().get(0);
         int tickTime = tick.getCurrentTime();
@@ -94,8 +94,8 @@ public class CameraService extends MicroService {
                 if (dob.getID().equals("ERROR")) {
                     camera.setStatus(STATUS.ERROR);
                     sendBroadcast(new CrashedBroadcast(getName()));
-                    LastFrameCamera lf = new LastFrameCamera(getName(),lastDetectedObjTime ,lastDetectedObj);
-                    ErrorCoordinator.getInstance().setLastFramesCameras(lf);
+                    //LastFrameCamera lf = new LastFrameCamera(getName(),lastDetectedObjTime ,lastDetectedObj);
+                    ErrorCoordinator.getInstance().setLastFramesCameras(getName(), lastDetectedObj);
                     ErrorCoordinator.getInstance().setCrashed(getName(), tickTime, dob.getDescription());
                     terminate();
                 }
@@ -104,8 +104,7 @@ public class CameraService extends MicroService {
             if (camera.getStatus() == STATUS.UP){
                 CameraProcessed dobjWithFreq = new CameraProcessed(tickTime + camera.getFrequency(),nextDetectedObjects);
                 cameraProcessedList.add(dobjWithFreq);
-                lastDetectedObj = nextDetectedObjects.getDetectedObjects();
-                lastDetectedObjTime = tickTime;
+                lastDetectedObj = nextDetectedObjects;
                 StatisticalFolder.getInstance().incrementDetectedObjects(camera.getDetectedObjectsList().remove(0).getDetectedObjects().size());
             }
         }
@@ -120,8 +119,8 @@ public class CameraService extends MicroService {
         if (camera.getStatus() == STATUS.UP && camera.getDetectedObjectsList().isEmpty()) {
             System.out.println(camera.getDetectedObjectsList().isEmpty());
             camera.setStatus(STATUS.DOWN);
-            LastFrameCamera lf = new LastFrameCamera(getName(),lastDetectedObjTime ,lastDetectedObj);
-            ErrorCoordinator.getInstance().setLastFramesCameras(lf);
+            //LastFrameCamera lf = new LastFrameCamera(getName(),lastDetectedObjTime ,lastDetectedObj);
+            ErrorCoordinator.getInstance().setLastFramesCameras(getName(), lastDetectedObj);
             sendBroadcast(new TerminatedBroadcast(getName()));
             terminate();
         }

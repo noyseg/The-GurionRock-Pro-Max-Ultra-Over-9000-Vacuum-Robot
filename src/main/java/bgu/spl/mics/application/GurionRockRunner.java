@@ -40,7 +40,7 @@ import bgu.spl.mics.application.services.TimeService;
  */
 public class GurionRockRunner {
 
-    static String configFilePath = "C:\\Users\\n3seg\\OneDrive\\Desktop\\GitHub\\Assignment2\\example input\\configuration_file.json";
+    static String configFilePath = "C:\\Users\\n3seg\\OneDrive\\Desktop\\GitHub\\Assignment2\\example_input_2\\configuration_file.json";
     static Path configFileDir = Paths.get(configFilePath).getParent();
 
     /**

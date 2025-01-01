@@ -48,7 +48,10 @@ public class GPSIMU {
     }
 
     public Pose getPose(){
-        return this.PoseList.get(currentTick-1);
+        if (PoseList.size() >= currentTick){
+            return this.PoseList.get(currentTick-1);
+        }
+        return null;
     }
 
     public PoseEvent processTick() {
@@ -57,7 +60,7 @@ public class GPSIMU {
     }
 
     public void updateLastPose(){
-        System.out.println(getPose());
+        //System.out.println(getPose());
         ErrorCoordinator.getInstance().setRobotPoses(getPose());
     }
 }
