@@ -21,6 +21,7 @@ public class LiDarService extends MicroService {
     private final LiDarWorkerTracker lidarWorker;
     private final PriorityQueue<DetectObjectsEvent> eventsToProcess;
     private int currentTick;
+    private boolean noCamera;
 
     /**
      * Constructor for LiDarService.
@@ -32,6 +33,7 @@ public class LiDarService extends MicroService {
         this.lidarWorker = LiDarWorkerTracker;
         this.eventsToProcess = new PriorityQueue<>(Comparator.comparingInt(DetectObjectsEvent::getTimeOfDetectedObjects));
         this.currentTick = 0;
+        this.noCamera = false;
     }
 
     /**
@@ -65,6 +67,9 @@ public class LiDarService extends MicroService {
         });
 
         subscribeBroadcast(TerminatedBroadcast.class, Terminated -> {
+            if (FusionSlam.getInstance().getCamerasCounter() == 0){
+                noCamera = true;
+            }
             if (Terminated.getSenderName().equals("TimeService")) {
                 lidarWorker.setStatus(STATUS.DOWN);
                 sendBroadcast(new TerminatedBroadcast(getName()));
@@ -94,7 +99,7 @@ public class LiDarService extends MicroService {
         }
         else{
             // Lidar need to be finished - no more cameras to send him data 
-            if (eventsToProcess.isEmpty() && FusionSlam.getInstance().getCamerasCounter() == 0){
+            if (eventsToProcess.isEmpty() && noCamera){
                 sendBroadcast(new TerminatedBroadcast(getName()));
                 terminate();
             }
@@ -118,6 +123,9 @@ public class LiDarService extends MicroService {
                     sendEvent(tracked);
                 }
             }
+        }
+        if (FusionSlam.getInstance().getCamerasCounter() == 0){
+            noCamera = true;
         }
     }
 
