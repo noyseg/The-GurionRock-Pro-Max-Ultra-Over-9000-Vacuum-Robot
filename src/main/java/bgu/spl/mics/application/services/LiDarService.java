@@ -49,7 +49,6 @@ public class LiDarService extends MicroService {
             if (lidarWorker.getStatus() == STATUS.UP){
                 if (ev.getTimeOfDetectedObjects() + lidarWorker.getFrequency() <= currentTick){
                     List<TrackedObject> processToBeSent = processDetectedObjects(ev);
-                    System.out.println(processToBeSent.size() + getName());
                     StatisticalFolder.getInstance().incrementTrackedObjects(processToBeSent.size());
                     TrackedObjectsEvent tracked = new TrackedObjectsEvent(processToBeSent,getName());
                     Future<Boolean> future = (Future<Boolean>) sendEvent(tracked);
@@ -115,7 +114,6 @@ public class LiDarService extends MicroService {
                 }
                 if (!trackedObjects.isEmpty()){
                     TrackedObjectsEvent tracked = new TrackedObjectsEvent(trackedObjects,getName()); // Sends event to fusion slum
-                    System.out.println(trackedObjects.size() + getName());
                     StatisticalFolder.getInstance().incrementTrackedObjects(trackedObjects.size());
                     lidarWorker.setLastTrackedObjectList(trackedObjects);
                     sendEvent(tracked);

@@ -84,7 +84,7 @@ public class CameraService extends MicroService {
      * @param tick The TickBroadcast containing the current time.
      */
     private void processTick(TickBroadcast tick) {
-        //System.out.println(getName() + tick.getCurrentTime());
+
         // Potential detected objects at tick time 
         if (camera.getDetectedObjectsList().size() == 0){
             dections = false;
@@ -115,8 +115,6 @@ public class CameraService extends MicroService {
                 }
             }
         }
-        if (!cameraProcessedList.isEmpty())
-            System.out.println(cameraProcessedList.getFirst().getDetectedObject().getDetectedObjects().size()  +"  "+ getName());
         // Objects are ready to be sent to lidar  
         if (camera.getStatus() == STATUS.UP && !cameraProcessedList.isEmpty()  && cameraProcessedList.getFirst().getProcessionTime() == tick.getCurrentTime()){
             CameraProcessed toLidar = cameraProcessedList.removeFirst(); 
