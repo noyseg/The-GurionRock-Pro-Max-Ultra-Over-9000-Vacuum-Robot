@@ -13,7 +13,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import bgu.spl.mics.application.objects.Camera;
-import bgu.spl.mics.application.objects.CameraData;
 import bgu.spl.mics.application.objects.CamerasConfigurations;
 import bgu.spl.mics.application.objects.ConfigFile;
 import bgu.spl.mics.application.objects.FusionSlam;
