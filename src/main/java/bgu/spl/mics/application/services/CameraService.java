@@ -72,7 +72,6 @@ public class CameraService extends MicroService {
         subscribeBroadcast(CrashedBroadcast.class, crash -> {
             camera.setStatus(STATUS.DOWN);
             sendBroadcast(new TerminatedBroadcast(getName()));
-            //LastFrameCamera lf = new LastFrameCamera(getName(), lastDetectedObjTime, lastDetectedObj);
             ErrorCoordinator.getInstance().setLastFramesCameras(getName(), lastDetectedObj);
             terminate();
         });
@@ -83,46 +82,62 @@ public class CameraService extends MicroService {
      *
      * @param tick The TickBroadcast containing the current time.
      */
-    private void processTick(TickBroadcast tick) {
-
-        // Potential detected objects at tick time 
+    private void processTick(TickBroadcast tick) { 
+        // No more detections 
         if (camera.getDetectedObjectsList().size() == 0){
             dections = false;
         }
+        // Camera has more detection to do 
         if (dections){
+            // Potential detected objects at tick time 
             StampedDetectedObjects nextDetectedObjects = camera.getDetectedObjectsList().get(0);
-            int tickTime = tick.getCurrentTime();
-            int timeOfDetectedObjects = nextDetectedObjects.getTime();
+            int currentTickTime = tick.getCurrentTime();
             // Proccesing the images that the camera detect in current time, if exist. 
-            if (tickTime == timeOfDetectedObjects) {
-                for (DetectedObject dob : nextDetectedObjects.getDetectedObjects()) {
-                    // Error was detected 
-                    if (dob.getID().equals("ERROR")) {
-                        camera.setStatus(STATUS.ERROR);
-                        sendBroadcast(new CrashedBroadcast(getName()));
-                        //LastFrameCamera lf = new LastFrameCamera(getName(),lastDetectedObjTime ,lastDetectedObj);
-                        ErrorCoordinator.getInstance().setLastFramesCameras(getName(), lastDetectedObj);
-                        ErrorCoordinator.getInstance().setCrashed(getName(), tickTime, dob.getDescription());
-                        terminate();
-                    }
-                }
+            if (currentTickTime == nextDetectedObjects.getTime()) {
+                checkForError(nextDetectedObjects, currentTickTime);
                 // Case that no error was detected 
                 if (camera.getStatus() == STATUS.UP){
-                    CameraProcessed dobjWithFreq = new CameraProcessed(tickTime + camera.getFrequency(),nextDetectedObjects);
-                    cameraProcessedList.add(dobjWithFreq);
-                    lastDetectedObj = nextDetectedObjects;
-                    StatisticalFolder.getInstance().incrementDetectedObjects(camera.getDetectedObjectsList().remove(0).getDetectedObjects().size());
+                    putOnWaitingList(nextDetectedObjects, currentTickTime);
                 }
             }
         }
         // Objects are ready to be sent to lidar  
-        if (camera.getStatus() == STATUS.UP && !cameraProcessedList.isEmpty()  && cameraProcessedList.getFirst().getProcessionTime() == tick.getCurrentTime()){
+        detectionToSend(tick.getCurrentTime());
+        // Checks if camera finishs its job and terminate in case it is
+        checkIfFinishAndTerminate();
+    }
+
+    private void checkForError(StampedDetectedObjects nextDetectedObjects, int tickTime){
+        for (DetectedObject dob : nextDetectedObjects.getDetectedObjects()) {
+            // Error was detected 
+            if (dob.getID().equals("ERROR")) {
+                camera.setStatus(STATUS.ERROR);
+                sendBroadcast(new CrashedBroadcast(getName()));
+                //LastFrameCamera lf = new LastFrameCamera(getName(),lastDetectedObjTime ,lastDetectedObj);
+                ErrorCoordinator.getInstance().setLastFramesCameras(getName(), lastDetectedObj);
+                ErrorCoordinator.getInstance().setCrashed(getName(), tickTime, dob.getDescription());
+                terminate();
+            }
+        }
+    }
+
+    private void putOnWaitingList(StampedDetectedObjects nextDetectedObjects, int tickTime){
+        CameraProcessed dobjWithFreq = new CameraProcessed(tickTime + camera.getFrequency(),nextDetectedObjects);
+        cameraProcessedList.add(dobjWithFreq);
+        lastDetectedObj = nextDetectedObjects;
+        StatisticalFolder.getInstance().incrementDetectedObjects(camera.getDetectedObjectsList().remove(0).getDetectedObjects().size());
+    }
+
+    private void detectionToSend(int tickTime){
+        if (camera.getStatus() == STATUS.UP && !cameraProcessedList.isEmpty()  && cameraProcessedList.getFirst().getProcessionTime() == tickTime){
             CameraProcessed toLidar = cameraProcessedList.removeFirst(); 
             StampedDetectedObjects stampedToLiDar = toLidar.getDetectedObject(); // The dectedObjects to be sent
             DetectObjectsEvent doe = new DetectObjectsEvent(stampedToLiDar, stampedToLiDar.getTime() ,getName());
-            Future<Boolean> future = (Future<Boolean>) sendEvent(doe);
+            sendEvent(doe);
         }
-        // Camera does not have any other detectedObject, it can be terminated
+    }
+
+    private void checkIfFinishAndTerminate(){
         if (camera.getStatus() == STATUS.UP && !dections && cameraProcessedList.isEmpty()) {
             camera.setStatus(STATUS.DOWN);
             ErrorCoordinator.getInstance().setLastFramesCameras(getName(), lastDetectedObj);

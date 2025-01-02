@@ -196,10 +196,6 @@
                     "description": "Door"
                 },
                 {
-                    "id": "Wall_5",
-                    "description": "Wall"
-                },
-                {
                     "id": "Wall_3",
                     "description": "Wall"
                 }

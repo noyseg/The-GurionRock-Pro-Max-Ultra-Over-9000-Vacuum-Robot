@@ -45,7 +45,6 @@ public class LiDarService extends MicroService {
 
         // Handle DetectObjectsEvent
         subscribeEvent(DetectObjectsEvent.class, ev -> { 
-            System.err.println("CAMARA DETECT " +  ev.getStampedDetectedObjects().getDetectedObjects().size());
             if (lidarWorker.getStatus() == STATUS.UP){
                 if (ev.getTimeOfDetectedObjects() + lidarWorker.getFrequency() <= currentTick){
                     List<TrackedObject> processToBeSent = processDetectedObjects(ev);

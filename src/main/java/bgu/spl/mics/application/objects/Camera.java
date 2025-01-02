@@ -58,7 +58,7 @@ public class Camera {
         return this.name;
     }
 
-        @Override
+    @Override
     public String toString() {
         return "Camera{" +
             "id=" + id +

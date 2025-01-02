@@ -3,7 +3,7 @@
     "CamerasConfigurations":[
       {
         "id": 1,
-        "frequency": 1,
+        "frequency": 0,
         "camera_key": "camera1"
       },{
         "id": 2,
@@ -35,5 +35,5 @@
   },
   "poseJsonFile": "./pose_data.json",
   "TickTime": 1,
-  "Duration": 20
+  "Duration": 120
 }
