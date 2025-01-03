@@ -1,17 +1,22 @@
 package bgu.spl.mics.application.objects;
 
+/**
+ * Represents the configuration file for the simulation.
+ * Contains settings for cameras, LiDAR workers, pose data, and simulation timing.
+ * Used for JSON reading
+ */
 public class ConfigFile {
-  private Cameras Cameras;
-  private LiDarWorkers LiDarWorkers;
-  private String poseJsonFile;
-  private int TickTime;
-  private int Duration;
+    private final Cameras Cameras;           // Camera configurations
+    private final LiDarWorkers LiDarWorkers; // LiDAR worker configurations
+    private final String poseJsonFile;       // File path for pose data
+    private final int TickTime;              // Time duration for each simulation tick
+    private final int Duration;              // Total simulation duration
 
   /**
      * Parameterized constructor to initialize the configuration.
      *
      * @param Cameras       The camera configuration.
-     * @param LiDarWorkers        The lidar configuration.
+     * @param LiDarWorkers  The lidar configuration.
      * @param poseJsonFile  The file path for pose data.
      * @param TickTime      The time duration for each simulation tick.
      * @param Duration      The total duration of the simulation.
@@ -32,28 +37,10 @@ public class ConfigFile {
     }
 
     /**
-     * Sets the camera configuration.
-     *
-     * @param cameras The camera configuration to set.
-     */
-    public void setCameras(Cameras cameras) {
-        this.Cameras = cameras;
-    }
-
-    /**
      * @return The lidar configuration.
      */
     public LiDarWorkers getLidars() {
         return LiDarWorkers;
-    }
-
-    /**
-     * Sets the lidar configuration.
-     *
-     * @param lidars The lidar configuration to set.
-     */
-    public void setLidars(LiDarWorkers LiDarWorkers) {
-        this.LiDarWorkers = LiDarWorkers;
     }
 
     /**
@@ -64,15 +51,6 @@ public class ConfigFile {
     }
 
     /**
-     * Sets the file path for pose data.
-     *
-     * @param poseFilePath The file path to set.
-     */
-    public void setPoseFilePath(String poseFilePath) {
-        this.poseJsonFile = poseFilePath;
-    }
-
-    /**
      * @return The time duration for each simulation tick.
      */
     public int getTickTime() {
@@ -80,28 +58,10 @@ public class ConfigFile {
     }
 
     /**
-     * Sets the time duration for each simulation tick.
-     *
-     * @param tickTime The tick time to set.
-     */
-    public void setTickTime(int tickTime) {
-        this.TickTime = tickTime;
-    }
-
-    /**
      * @return The total duration of the simulation.
      */
     public int getDuration() {
         return Duration;
-    }
-
-    /**
-     * Sets the total duration of the simulation.
-     *
-     * @param duration The duration to set.
-     */
-    public void setDuration(int duration) {
-        this.Duration = duration;
     }
 
     @Override

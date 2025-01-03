@@ -65,7 +65,7 @@ public class FusionSlamService extends MicroService {
         System.out.println(getName() + " started");
         // Handle TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
-        //    StatisticalFolder.getInstance().incrementSystemRunTime(1);
+            //StatisticalFolder.getInstance().incrementSystemRunTime(1);
         });
 
         // Handle TrackedObjectsEvent

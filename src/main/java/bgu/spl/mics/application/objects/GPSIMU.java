@@ -16,11 +16,16 @@ public class GPSIMU {
     private int currentTick;
     private STATUS status;
     private List<Pose> PoseList;
+    private int numOfCameras;
+    private int numOfLidars;
 
-    public GPSIMU(int currentTick, List<Pose> PoseList){
+
+    public GPSIMU(int currentTick, List<Pose> PoseList, int numOfCameras, int numOfLidars){
         this.currentTick = currentTick;
         this.status = STATUS.UP;
         this.PoseList = PoseList;
+        this.numOfCameras = numOfCameras;
+        this.numOfLidars = numOfLidars;
     }
 
     public int getCurrentTime(){
@@ -62,4 +67,23 @@ public class GPSIMU {
     public void updateLastPose(){
         ErrorCoordinator.getInstance().setRobotPoses(getPose());
     }
+
+    public int getCameraCount(){
+        return this.numOfCameras;
+    }
+
+    public void setCameraCount(){
+        this.numOfCameras -= 1;
+    }
+
+    public int getLidarCount(){
+        return this.numOfCameras;
+    }
+
+    public void setLidarCount(){
+        this.numOfCameras -= 1;
+    }
+
+
+
 }
