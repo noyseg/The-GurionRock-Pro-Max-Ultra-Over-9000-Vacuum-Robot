@@ -34,6 +34,7 @@ public class CloudPoint {
         return this.y;
     }
 
+    @Override
     public String toString() {
         return "CloudPoint{" +
                 "x=" + x +

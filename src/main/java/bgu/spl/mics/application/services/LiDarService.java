@@ -1,11 +1,11 @@
 package bgu.spl.mics.application.services;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
-import bgu.spl.mics.Future;
+
 import bgu.spl.mics.MicroService;
+
 import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.objects.*;
 
@@ -18,10 +18,10 @@ import bgu.spl.mics.application.objects.*;
  * observations.
  */
 public class LiDarService extends MicroService {
-    private final LiDarWorkerTracker lidarWorker;
-    private final PriorityQueue<DetectObjectsEvent> eventsToProcess;
-    private int currentTick;
-    private boolean noCamera;
+    private final LiDarWorkerTracker lidarWorker; // The LidarWorker object associated with this service
+    private final PriorityQueue<DetectObjectsEvent> eventsToProcess; // Priority Queue of DetectObjectsEvent waiting to be processed,
+    // order by DETECTION time 
+    private int currentTick; // Simulation current tick, updated by TickBroadcast 
 
     /**
      * Constructor for LiDarService.
@@ -29,11 +29,10 @@ public class LiDarService extends MicroService {
      * @param LiDarWorkerTracker A LiDAR Tracker worker object that this service will use to process data.
      */
     public LiDarService(LiDarWorkerTracker LiDarWorkerTracker) {
-        super("Lidar" + LiDarWorkerTracker.getId());
+        super(LiDarWorkerTracker.getName());
         this.lidarWorker = LiDarWorkerTracker;
         this.eventsToProcess = new PriorityQueue<>(Comparator.comparingInt(DetectObjectsEvent::getTimeOfDetectedObjects));
-        this.currentTick = 0;
-        this.noCamera = false;
+        this.currentTick = 0; // Initialized value of simulation
     }
 
     /**
@@ -48,11 +47,12 @@ public class LiDarService extends MicroService {
         // Handle DetectObjectsEvent
         subscribeEvent(DetectObjectsEvent.class, ev -> { 
             if (lidarWorker.getStatus() == STATUS.UP){
+                // 
                 if (ev.getTimeOfDetectedObjects() + lidarWorker.getFrequency() <= currentTick){
-                    List<TrackedObject> processToBeSent = processDetectedObjects(ev);
-                    StatisticalFolder.getInstance().incrementTrackedObjects(processToBeSent.size());
-                    TrackedObjectsEvent tracked = new TrackedObjectsEvent(processToBeSent,getName());
-                    Future<Boolean> future = (Future<Boolean>) sendEvent(tracked);
+                    List<TrackedObject> trackedObjects = new LinkedList<>();
+                    processDetectedObjects(ev, trackedObjects);
+                    TrackedObjectsEvent tracked = new TrackedObjectsEvent(trackedObjects,getName());
+                    sendEvent(tracked);
                 }
                 else{
                     eventsToProcess.add(ev);
@@ -67,8 +67,8 @@ public class LiDarService extends MicroService {
         });
 
         subscribeBroadcast(TerminatedBroadcast.class, Terminated -> {
-            if (FusionSlam.getInstance().getCamerasCounter() == 0){
-                noCamera = true;
+            if(Terminated.getSenderName().startsWith("c")){
+                lidarWorker.setCameraCount();
             }
             if (Terminated.getSenderName().equals("TimeService")) {
                 lidarWorker.setStatus(STATUS.DOWN);
@@ -80,76 +80,81 @@ public class LiDarService extends MicroService {
         subscribeBroadcast(CrashedBroadcast.class, Crashed -> {
             System.out.println("Crashed");
             lidarWorker.setStatus(STATUS.DOWN);
-            //LastFrameLidar lf = new LastFrameLidar(getName(), lidarWorker.getLastTrackedObjectList());
             ErrorCoordinator.getInstance().setLastFramesLidars(getName(),lidarWorker.getLastTrackedObjectList());;
             sendBroadcast(new TerminatedBroadcast(getName())); 
             terminate();
         });
-        // Subscribes to TickBroadcast, TerminatedBroadcast, CrashedBroadcast, DetectObjectsEvent.
     }
     
+    /**
+     * Processes a single tick broadcast.
+     * Updates the current simulation tick, checks for LiDAR errors, and handles 
+     * events that are ready for processing.
+     * 
+     * @param tick The {@link TickBroadcast} containing the current simulation time.
+     */
     private void processTick(TickBroadcast tick){
         this.currentTick = tick.getCurrentTime();
         // lidarErrorInTime will return true if there is an error
         if (lidarWorker.getLiDarDataBase().lidarErrorInTime(currentTick)){
-            ErrorCoordinator.getInstance().setLastFramesLidars(getName(),lidarWorker.getLastTrackedObjectList());
-            ErrorCoordinator.getInstance().setCrashed(getName(), currentTick, "Lidar disconnected");
-            sendBroadcast(new CrashedBroadcast(getName()));
-            terminate();
+            handleCrash("LiDar Disconnection");
         }
         else{
-            // Lidar need to be finished - no more cameras to send him data 
-            if (eventsToProcess.isEmpty() && noCamera){
-                sendBroadcast(new TerminatedBroadcast(getName()));
-                terminate();
-            }
+            checkTerminationConditionsAndTerminate();
             // As long as we have detected objects that can be send at this moment
-            else{
-                List<TrackedObject> trackedObjects = new LinkedList<>();
-                while (!eventsToProcess.isEmpty() && eventsToProcess.peek().getTimeOfDetectedObjects() + lidarWorker.getFrequency() <= currentTick){
-                    DetectObjectsEvent dob = eventsToProcess.poll();
-                    StampedDetectedObjects toProcess = dob.getStampedDetectedObjects();
-                    List<DetectedObject> detectedObjects = toProcess.getDetectedObjects();
-                    int time = toProcess.getTime();
-                    for (DetectedObject doe : detectedObjects){
-                        trackedObjects.add(lidarWorker.detectToTrack(doe,time,getName()));
-                    }
-                    complete(dob, true);
-                }
-                if (!trackedObjects.isEmpty()){
-                    TrackedObjectsEvent tracked = new TrackedObjectsEvent(trackedObjects,getName()); // Sends event to fusion slum
-                    StatisticalFolder.getInstance().incrementTrackedObjects(trackedObjects.size());
-                    lidarWorker.setLastTrackedObjectList(trackedObjects);
-                    sendEvent(tracked);
-                }
+            List<TrackedObject> trackedObjects = new LinkedList<>();
+            while (!eventsToProcess.isEmpty() && eventsToProcess.peek().getTimeOfDetectedObjects() + lidarWorker.getFrequency() <= currentTick){
+                DetectObjectsEvent dob = eventsToProcess.poll();
+                processDetectedObjects(dob , trackedObjects);
             }
-        }
-        if (FusionSlam.getInstance().getCamerasCounter() == 0){
-            noCamera = true;
+            if (!trackedObjects.isEmpty()){
+                TrackedObjectsEvent tracked = new TrackedObjectsEvent(trackedObjects,getName()); // Sends event to fusion slum
+                sendEvent(tracked);
+            }
         }
     }
 
-    // private void processDetectedObjectEvent(DetectObjectsEvent ev){
-    //     StampedDetectedObjects toProcess = ev.getStampedDetectedObjects();
-    //     List<DetectedObject> detectedObjects = toProcess.getDetectedObjects();
-    //     int time = toProcess.getTime();
-    //     for (DetectedObject doe : detectedObjects){
-    //         trackedObjects.add(lidarWorker.detectToTrack(doe,time));
-    //     }
-    //     complete(ev, true);
-    // }
+    /**
+     * Converts a detected objects event into a list of tracked objects and resolves the event.
+     * 
+     * @param ev The {@link DetectObjectsEvent} containing detected objects.
+     * @return A list of {@link TrackedObject} that represents the detected objects.
+     */
 
-    // Gets detected DetectObjectsEvent ready rigth now to be sent, and return correspondent List of TrackedObjects  
-    private List<TrackedObject> processDetectedObjects(DetectObjectsEvent ev){
-        List<TrackedObject> trackedObjectsToSend = new LinkedList<>();
-        StampedDetectedObjects toProcess = ev.getStampedDetectedObjects(); // Extract the StampedDetectedObjects themself
-        List<DetectedObject> detectedObjects = toProcess.getDetectedObjects();  // Extract the DetectedObjects themself
+    // Gets detected DetectObjectsEvent ready right now to be sent, and return correspondent List of TrackedObjects  
+    private void processDetectedObjects(DetectObjectsEvent ev, List<TrackedObject> trackedObjectsToSend){
+        StampedDetectedObjects toProcess = ev.getStampedDetectedObjects(); // Extract the StampedDetectedObjects themselves
+        List<DetectedObject> detectedObjects = toProcess.getDetectedObjects();  // Extract the DetectedObjects themselves
         int time = toProcess.getTime();
         for (DetectedObject doe : detectedObjects){
             trackedObjectsToSend.add(lidarWorker.detectToTrack(doe,time,getName()));
         }
         lidarWorker.setLastTrackedObjectList(trackedObjectsToSend);
+        StatisticalFolder.getInstance().incrementTrackedObjects(trackedObjectsToSend.size());
         complete(ev, true);
-        return trackedObjectsToSend;
+    }
+
+     /**
+     * Handles a crash event for the LiDAR service.
+     * Logs the error, notifies the error coordinator, and broadcasts a crash event.
+     * 
+     * @param reason The reason for the crash.
+     */
+    private void handleCrash(String reason) {
+        ErrorCoordinator.getInstance().setLastFramesLidars(getName(), lidarWorker.getLastTrackedObjectList());
+        ErrorCoordinator.getInstance().setCrashed(getName(), currentTick, reason);
+        sendBroadcast(new CrashedBroadcast(getName()));
+        terminate();
+    }
+
+    /**
+     * Checks termination conditions for the LiDAR service.
+     * Terminates the service if there are no remaining events or active cameras.
+     */
+    private void checkTerminationConditionsAndTerminate() {
+        if (eventsToProcess.isEmpty() && lidarWorker.getCameraCount() == 0) {
+            sendBroadcast(new TerminatedBroadcast(getName()));
+            terminate();
+        }
     }
 }

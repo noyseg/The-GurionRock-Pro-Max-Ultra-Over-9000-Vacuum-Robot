@@ -26,7 +26,7 @@ class LiDarWorkerTrackerTest {
 
     @BeforeEach
     void setUp() {
-        tracker = new LiDarWorkerTracker(1, 1, "src/test/resources/lidar_data.json");
+        tracker = new LiDarWorkerTracker(1, 1, "src/test/resources/lidar_data.json",1);
         detectedObject1 = new DetectedObject("Wall_1", "Wall1");
         timeOfObject1 = 2;
 
