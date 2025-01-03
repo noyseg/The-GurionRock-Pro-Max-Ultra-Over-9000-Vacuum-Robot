@@ -60,7 +60,6 @@ public class GPSIMU {
     }
 
     public void updateLastPose(){
-        //System.out.println(getPose());
         ErrorCoordinator.getInstance().setRobotPoses(getPose());
     }
 }

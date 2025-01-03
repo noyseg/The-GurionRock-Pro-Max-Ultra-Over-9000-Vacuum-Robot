@@ -21,6 +21,7 @@ public class LiDarService extends MicroService {
     private final LiDarWorkerTracker lidarWorker;
     private final PriorityQueue<DetectObjectsEvent> eventsToProcess;
     private int currentTick;
+    private boolean noCamera;
 
     /**
      * Constructor for LiDarService.
@@ -32,6 +33,7 @@ public class LiDarService extends MicroService {
         this.lidarWorker = LiDarWorkerTracker;
         this.eventsToProcess = new PriorityQueue<>(Comparator.comparingInt(DetectObjectsEvent::getTimeOfDetectedObjects));
         this.currentTick = 0;
+        this.noCamera = false;
     }
 
     /**
@@ -65,6 +67,9 @@ public class LiDarService extends MicroService {
         });
 
         subscribeBroadcast(TerminatedBroadcast.class, Terminated -> {
+            if (FusionSlam.getInstance().getCamerasCounter() == 0){
+                noCamera = true;
+            }
             if (Terminated.getSenderName().equals("TimeService")) {
                 lidarWorker.setStatus(STATUS.DOWN);
                 sendBroadcast(new TerminatedBroadcast(getName()));
@@ -84,12 +89,9 @@ public class LiDarService extends MicroService {
     }
     
     private void processTick(TickBroadcast tick){
-        System.out.println(getName() +"  " + tick.getCurrentTime());
         this.currentTick = tick.getCurrentTime();
         // lidarErrorInTime will return true if there is an error
         if (lidarWorker.getLiDarDataBase().lidarErrorInTime(currentTick)){
-            System.out.println(getName() +" ! " + tick.getCurrentTime());
-            //LastFrameLidar lf = new LastFrameLidar(getName(), lidarWorker.getLastTrackedObjectList());
             ErrorCoordinator.getInstance().setLastFramesLidars(getName(),lidarWorker.getLastTrackedObjectList());
             ErrorCoordinator.getInstance().setCrashed(getName(), currentTick, "Lidar disconnected");
             sendBroadcast(new CrashedBroadcast(getName()));
@@ -97,8 +99,7 @@ public class LiDarService extends MicroService {
         }
         else{
             // Lidar need to be finished - no more cameras to send him data 
-            if (eventsToProcess.isEmpty() && FusionSlam.getInstance().getCamerasCounter() == 0){
-                System.out.println(getName() +" :() " + tick.getCurrentTime());
+            if (eventsToProcess.isEmpty() && noCamera){
                 sendBroadcast(new TerminatedBroadcast(getName()));
                 terminate();
             }
@@ -106,24 +107,25 @@ public class LiDarService extends MicroService {
             else{
                 List<TrackedObject> trackedObjects = new LinkedList<>();
                 while (!eventsToProcess.isEmpty() && eventsToProcess.peek().getTimeOfDetectedObjects() + lidarWorker.getFrequency() <= currentTick){
-                    System.out.println("!!!!!!!");
                     DetectObjectsEvent dob = eventsToProcess.poll();
                     StampedDetectedObjects toProcess = dob.getStampedDetectedObjects();
                     List<DetectedObject> detectedObjects = toProcess.getDetectedObjects();
                     int time = toProcess.getTime();
                     for (DetectedObject doe : detectedObjects){
-                        trackedObjects.add(lidarWorker.detectToTrack(doe,time));
+                        trackedObjects.add(lidarWorker.detectToTrack(doe,time,getName()));
                     }
                     complete(dob, true);
                 }
                 if (!trackedObjects.isEmpty()){
-                    System.out.println(getName() +"  " + tick.getCurrentTime());
                     TrackedObjectsEvent tracked = new TrackedObjectsEvent(trackedObjects,getName()); // Sends event to fusion slum
                     StatisticalFolder.getInstance().incrementTrackedObjects(trackedObjects.size());
                     lidarWorker.setLastTrackedObjectList(trackedObjects);
-                    Future<Boolean> future = (Future<Boolean>) sendEvent(tracked);
+                    sendEvent(tracked);
                 }
             }
+        }
+        if (FusionSlam.getInstance().getCamerasCounter() == 0){
+            noCamera = true;
         }
     }
 
@@ -144,7 +146,7 @@ public class LiDarService extends MicroService {
         List<DetectedObject> detectedObjects = toProcess.getDetectedObjects();  // Extract the DetectedObjects themself
         int time = toProcess.getTime();
         for (DetectedObject doe : detectedObjects){
-            trackedObjectsToSend.add(lidarWorker.detectToTrack(doe,time));
+            trackedObjectsToSend.add(lidarWorker.detectToTrack(doe,time,getName()));
         }
         lidarWorker.setLastTrackedObjectList(trackedObjectsToSend);
         complete(ev, true);

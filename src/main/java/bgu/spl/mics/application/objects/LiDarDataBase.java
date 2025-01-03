@@ -19,14 +19,14 @@ public class LiDarDataBase {
         private static LiDarDataBase Instance = new LiDarDataBase(); 
     }
     private List<StampedCloudPoints> stampedCloudPoints;
-    private Map<ObjectDataTracker, List<List<Double>>> stampedCloudPointsMap;
+    private List<List<StampedCloudPoints>> stampedCloudPointsSort;
 
     /**
      * Private constructor to enforce the Singleton pattern.
      */
     private LiDarDataBase() {
         this.stampedCloudPoints = new LinkedList<StampedCloudPoints>();
-        this.stampedCloudPointsMap = new HashMap<>();
+        this.stampedCloudPointsSort = new LinkedList<>();
     }
 
     /**
@@ -41,9 +41,22 @@ public class LiDarDataBase {
             instance.loadData(filePath);
             if (!instance.stampedCloudPoints.isEmpty()){
                 for(StampedCloudPoints scp: instance.stampedCloudPoints){
-                    ObjectDataTracker key = new ObjectDataTracker(scp.getId(),scp.getTime());
-                    System.out.println(key);
-                    instance.stampedCloudPointsMap.put(key,scp.getCloudPoints());
+                    if (instance.stampedCloudPointsSort.size() != 0){
+                        List<StampedCloudPoints> lastStamped = instance.stampedCloudPointsSort.get(instance.stampedCloudPointsSort.size()-1);
+                        if (lastStamped.get(0).getTime() == scp.getTime()){
+                            lastStamped.add(scp);
+                        }
+                        else{
+                            List<StampedCloudPoints> newLastStamped = new LinkedList<>();
+                            newLastStamped.add(scp);
+                            instance.stampedCloudPointsSort.add(newLastStamped);
+                        }
+                    }
+                    else{
+                        List<StampedCloudPoints> newLastStamped = new LinkedList<>();
+                        newLastStamped.add(scp);
+                        instance.stampedCloudPointsSort.add(newLastStamped);
+                    }
                 }
             }
         }
@@ -75,28 +88,50 @@ public class LiDarDataBase {
         return stampedCloudPoints;
     }
 
-    public Map<ObjectDataTracker, List<List<Double>>>  getstampedCloudPointsMap() {
-        return stampedCloudPointsMap;
+    public List<List<StampedCloudPoints>> getstampedCloudPointsSort() {
+        return stampedCloudPointsSort;
     }
 
     public List<List<Double>> getCloudPointsData(int time,String id){
-        for (StampedCloudPoints stmp:stampedCloudPoints){
-            if(stmp.getTime() == time && stmp.getId().equals(id)){
-                return stmp.getCloudPoints();
+        for (List<StampedCloudPoints> stmpList: stampedCloudPointsSort){
+            if(stmpList.get(0).getTime() == time){
+                for(StampedCloudPoints stmCp: stmpList){
+                    if (stmCp.getId().equals(id)){
+                        return stmCp.getCloudPoints();
+                    }
+
+                }
             }
         }
+        System.err.println(time + "  " + id);
         return null;
     }
 
+    // public boolean lidarErrorInTime(int time){
+    //     for (StampedCloudPoints stm: this.stampedCloudPoints){
+    //         if (stm.getTime() == time){
+    //             if (stm.equals("ERROR")){ 
+    //                 return true;
+    //             }
+    //         }
+    //         if (stm.getTime() > time)
+    //             return false;
+    //     }
+    //     return false;
+    // }
+
     public boolean lidarErrorInTime(int time){
-        for (StampedCloudPoints stm: this.stampedCloudPoints){
-            if (stm.getTime() == time){
-                if (stm.equals("ERROR")){ 
-                    return true;
+        for (List<StampedCloudPoints> stm: this.stampedCloudPointsSort){
+            if (stm.get(0).getTime() == time){
+                for (StampedCloudPoints stmPoint : stm){
+                    if (stmPoint.getId().equals("ERROR")){ 
+                        return true;
+                    }
                 }
             }
-            if (stm.getTime() > time)
+            if(stm.get(0).getTime() > time){
                 return false;
+            }
         }
         return false;
     }

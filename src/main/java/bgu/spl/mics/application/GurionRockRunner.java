@@ -13,7 +13,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import bgu.spl.mics.application.objects.Camera;
-import bgu.spl.mics.application.objects.CameraData;
 import bgu.spl.mics.application.objects.CamerasConfigurations;
 import bgu.spl.mics.application.objects.ConfigFile;
 import bgu.spl.mics.application.objects.FusionSlam;
@@ -40,6 +39,7 @@ import bgu.spl.mics.application.services.TimeService;
 public class GurionRockRunner {
 
     static String configFilePath = "C:\\Users\\noamt\\Documents\\workspaces\\SPL assignment 2\\example6determi\\configuration_file.json";
+    // static String configFilePath = "C:\\Users\\n3seg\\OneDrive\\Desktop\\GitHub\\Assignment2\\example input\\configuration_file.json";
     static Path configFileDir = Paths.get(configFilePath).getParent();
 
     /**
@@ -56,7 +56,6 @@ public class GurionRockRunner {
         //     System.err.println("Error: Configuration file path is required as the first argument.");
         //     return;
         // }
-
             try (FileReader mainReader = new FileReader(configFilePath)) {
             Gson gson = new Gson();
             ConfigFile config = gson.fromJson(mainReader, ConfigFile.class);

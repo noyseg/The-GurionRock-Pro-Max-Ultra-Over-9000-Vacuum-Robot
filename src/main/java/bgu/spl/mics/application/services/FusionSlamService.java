@@ -149,7 +149,7 @@ public class FusionSlamService extends MicroService {
         // Prepare data to serialize
         LinkedHashMap<String, Object> outputData = new LinkedHashMap<>();
         Collection<LandMark> values = fusionSlam.getLandMarks().values(); 
-  
+        System.out.println(StatisticalFolder.getInstance().getNumTrackedObjects());
         // Creating an ArrayList of values 
         ArrayList<LandMark> landMarkslist = new ArrayList<>(values);
         StatisticalFolder.getInstance().setLandMarkslist(landMarkslist);

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import bgu.spl.mics.application.messages.CrashedBroadcast;
+
 public class Cameras {
 
     private List<CamerasConfigurations> CamerasConfigurations;
