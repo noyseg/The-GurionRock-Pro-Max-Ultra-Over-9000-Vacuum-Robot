@@ -60,14 +60,15 @@ public class TimeService extends MicroService {
                     }
                 }
 
-                // After duration or if there are no more microServices , broadcast termination
-                sendBroadcast(new TerminatedBroadcast(getName()));
-                terminate();
+                
 
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt(); // Restore interrupt status
             }
         }).start();
+        // After duration or if there are no more microServices , broadcast termination
+        sendBroadcast(new TerminatedBroadcast(getName()));
+        terminate();
 
     }
 }

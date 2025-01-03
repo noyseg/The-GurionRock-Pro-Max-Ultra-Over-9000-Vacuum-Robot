@@ -48,6 +48,9 @@ class LiDarWorkerTrackerTest {
     void detectToTrackWithSingleObject() {
         TrackedObject trackedObject = tracker.detectToTrack(detectedObject1, timeOfObject1,sender);
         assertNotNull(trackedObject);
+        assertEquals(trackedObject.getId(), detectedObject1.getId());
+        assertEquals(trackedObject.getDescription(), detectedObject1.getDescription());
+        assertEquals(trackedObject.getCoordinates(), coordinates1);
     }
 
     @Test
