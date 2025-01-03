@@ -117,8 +117,10 @@ public class MessageBusImpl implements MessageBus {
             }
             for (Message mes : microServicesQueues.get(m)) {
                 // if neccesery???
-                eventAndFutureUnresolved.get(mes).resolve(null); // We want to resolve any waiting Futures
-                eventAndFutureUnresolved.remove(mes);
+                if (eventAndFutureUnresolved.get(mes) != null) {
+                    eventAndFutureUnresolved.get(mes).resolve(null); // We want to resolve any waiting Futures
+                    eventAndFutureUnresolved.remove(mes);
+                }
             }
             microServicesQueues.remove(m);
         }
@@ -145,6 +147,7 @@ public class MessageBusImpl implements MessageBus {
     public ConcurrentHashMap<Class<? extends Broadcast>, BlockingQueue<MicroService>> getBroadcastSubscribers() {
         return this.broadcastSubscribers;
     }
+
     public ConcurrentHashMap<Event<?>, Future<?>> getEventAndFutureUnresolved() {
         return this.eventAndFutureUnresolved;
     }

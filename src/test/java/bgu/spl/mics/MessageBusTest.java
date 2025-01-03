@@ -28,11 +28,14 @@ class MessageBusTest {
         tickBroadcast = new TickBroadcast("TimeService", 5);
 
     }
+
     @AfterEach
     void tearDown() {
         // Unregister the test microservice if it was registered
         try {
-            messageBus.unregister(testMicroService);
+            if (testMicroService != null) {
+                messageBus.unregister(testMicroService);
+            }
         } catch (IllegalStateException ignored) {
             // Ignore exceptions for unregistered services
         }
@@ -56,9 +59,8 @@ class MessageBusTest {
     }
 
 
-
     @Test
-    void subscribeEvent() {
+    void testSubscribeEvent() {
         // Test subscribing to an event
         messageBus.register(testMicroService);
         messageBus.subscribeEvent(ExampleEvent.class, testMicroService);
@@ -114,7 +116,7 @@ class MessageBusTest {
     }
 
     @Test
-    void subscribeBroadcast() {
+    void testSubscribeBroadcast() {
         // Test subscribing to a broadcast
         messageBus.register(testMicroService);
         messageBus.subscribeBroadcast(ExampleBroadcast.class, testMicroService);
@@ -169,7 +171,7 @@ class MessageBusTest {
     }
 
     @Test
-    void complete() {
+    void testComplete() {
         // Test completing a task
         // Create a mock event and result
         Event<String> mockEvent = new Event<String>() {
@@ -193,7 +195,7 @@ class MessageBusTest {
     }
 
     @Test
-    void sendBroadcast() {
+    void testSendBroadcast() {
         // Test sending a broadcast to a single subscriber
         messageBus.register(testMicroService);
         messageBus.subscribeBroadcast(TickBroadcast.class, testMicroService);
@@ -248,7 +250,7 @@ class MessageBusTest {
     }
 
     @Test
-    void sendEvent() {
+    void testSendEvent() {
         // Test sending a broadcast to a single subscriber
         messageBus.register(testMicroService);
         messageBus.subscribeEvent(PoseEvent.class, testMicroService);
@@ -300,13 +302,13 @@ class MessageBusTest {
             fail("Thread interruption occurred");
         }
         // We have sent total of 16 events, the sum of the size of microservices queues should be 16
-        assertEquals(16, messageBus.getMicroServicesQueues().get(testMicroService).size()+messageBus.getMicroServicesQueues().get(anotherService).size());
+        assertEquals(16, messageBus.getMicroServicesQueues().get(testMicroService).size() + messageBus.getMicroServicesQueues().get(anotherService).size());
 
     }
 
 
     @Test
-    void register() {
+    void testRegister() {
         MessageBusImpl messageBus = MessageBusImpl.getIstance();
 
         // Test registering a single MicroService
@@ -360,7 +362,7 @@ class MessageBusTest {
     }
 
     @Test
-    void unregister() {
+    void testUnregister() {
         // Test unregistering a MicroService that was not registered
         assertNull(messageBus.getMicroServicesQueues().get(testMicroService));
         messageBus.unregister(testMicroService);
@@ -414,27 +416,27 @@ class MessageBusTest {
     }
 
     @Test
-    void awaitMessage() throws InterruptedException {
+    void testAwaitMessage() throws InterruptedException {
         MessageBus messageBus = MessageBusImpl.getIstance();
         MicroService microService = new TimeService(1, 1);
-    
+
         messageBus.register(microService);
-    
+
         // Create and send a test message
         PoseEvent testEvent = new PoseEvent(new Pose(1.0f, 1.0f, 30.0f, 5));
         messageBus.subscribeEvent(PoseEvent.class, microService);
         Future<Boolean> future = messageBus.sendEvent(testEvent);
-    
+
         // Test awaiting and receiving the message
         Message receivedMessage = messageBus.awaitMessage(microService);
         assertNotNull(receivedMessage);
         assertInstanceOf(PoseEvent.class, receivedMessage);
         assertEquals(testEvent, receivedMessage);
-    
+
         // Test throwing IllegalStateException for unregistered MicroService
         MicroService unregisteredService = new TimeService(2, 2);
         assertThrows(IllegalStateException.class, () -> messageBus.awaitMessage(unregisteredService));
-    
+
         // Clean up
         messageBus.unregister(microService);
     }

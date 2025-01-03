@@ -122,6 +122,12 @@ public class CameraService extends MicroService {
             //LastFrameCamera lf = new LastFrameCamera(getName(),lastDetectedObjTime ,lastDetectedObj);
             ErrorCoordinator.getInstance().setLastFramesCameras(getName(), lastDetectedObj);
             sendBroadcast(new TerminatedBroadcast(getName()));
+            System.out.println("Camera proccessed list SIZE= "+cameraProcessedList.size());
+            if(!cameraProcessedList.isEmpty()){
+                for (CameraProcessed cameraProcessed : cameraProcessedList) {
+                    System.out.println("Object left= "+cameraProcessed.getDetectedObject().getDetectedObjects().size());
+                }
+            }
             terminate();
         }
     }
