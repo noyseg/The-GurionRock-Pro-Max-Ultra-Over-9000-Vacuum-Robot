@@ -73,6 +73,7 @@ public class FusionSlamService extends MicroService {
 
         // Handle TerminatedBroadcast: checks when other services are terminated
         subscribeBroadcast(TerminatedBroadcast.class, terminate -> {
+            System.out.println(waitingTracked.isEmpty());
             // Time Service was terminated 
             if (terminate.getSenderName().equals("TimeService"))
                 isTimeServiceTerminated = true;

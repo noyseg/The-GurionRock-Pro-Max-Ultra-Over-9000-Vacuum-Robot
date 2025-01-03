@@ -109,7 +109,6 @@ public class StatisticalFolder {
         numTrackedObjects.addAndGet(delta);
     }
 
-
     /**
      * Increments the number of landmarks by the specified delta using CAS.
      * This ensures thread-safety when modifying the count of landmarks.

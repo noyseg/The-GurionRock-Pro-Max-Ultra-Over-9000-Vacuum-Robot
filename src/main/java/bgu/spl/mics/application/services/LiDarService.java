@@ -47,12 +47,12 @@ public class LiDarService extends MicroService {
         // Subscribe to TickBroadcast
         subscribeEvent(DetectObjectsEvent.class, ev -> { 
             if (lidarWorker.getStatus() == STATUS.UP){
-                // 
                 if (ev.getTimeOfDetectedObjects() + lidarWorker.getFrequency() <= currentTick){
                     List<TrackedObject> trackedObjects = new LinkedList<>();
                     processDetectedObjects(ev, trackedObjects);
                     TrackedObjectsEvent tracked = new TrackedObjectsEvent(trackedObjects,getName());
                     sendEvent(tracked);
+                    StatisticalFolder.getInstance().incrementTrackedObjects(trackedObjects.size());
                 }
                 else{
                     eventsToProcess.add(ev);
@@ -113,6 +113,7 @@ public class LiDarService extends MicroService {
             if (!trackedObjects.isEmpty()){
                 TrackedObjectsEvent tracked = new TrackedObjectsEvent(trackedObjects,getName());
                 sendEvent(tracked);
+                StatisticalFolder.getInstance().incrementTrackedObjects(trackedObjects.size());
             }
         }
     }
@@ -134,7 +135,6 @@ public class LiDarService extends MicroService {
         }
         // Set LastTrackedObjectList to contain the newest TrackedObject List
         lidarWorker.setLastTrackedObjectList(trackedObjectsToSend);
-        StatisticalFolder.getInstance().incrementTrackedObjects(trackedObjectsToSend.size()); // Objects were tracked to update in StatisticalFolder
         complete(ev, true);
     }
 
