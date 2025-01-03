@@ -1,9 +1,14 @@
 package bgu.spl.mics.application.objects;
 
+/**
+ * LidarConfigurations represents a single LiDAR device's configuration, including its unique 
+ * identifier and the frequency at which it captures or processes data.
+ * Used for JSON reading 
+ */
 public class LidarConfigurations {
     
-    private int id;
-    private int frequency;
+    private final int id;
+    private final int frequency;
 
     /**
      * Parameterized constructor to initialize LiDAR data.
@@ -24,28 +29,10 @@ public class LidarConfigurations {
     }
 
     /**
-     * Sets the unique identifier for the LiDAR.
-     *
-     * @param id The unique identifier to set.
-     */
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    /**
      * @return The frequency of data capture or processing.
      */
     public int getFrequency() {
         return frequency;
-    }
-
-    /**
-     * Sets the frequency of data capture or processing.
-     *
-     * @param frequency The frequency to set.
-     */
-    public void setFrequency(int frequency) {
-        this.frequency = frequency;
     }
 
     @Override

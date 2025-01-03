@@ -56,12 +56,12 @@ public class CameraService extends MicroService {
         // Subscribe to TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
             if (camera.getStatus() == STATUS.UP) {
-                // Process only if the camera is active.
+                // Process only if the camera is active
                 processTick(tick);
             }
         });
 
-         // Subscribe to TerminatedBroadcast to shut down when TimeService ends.
+        // Subscribe to TerminatedBroadcast to shuts down when TimeService ends.
         subscribeBroadcast(TerminatedBroadcast.class, terminate -> {
             if (terminate.getSenderName().equals("TimeService")) {
                 camera.setStatus(STATUS.DOWN);
@@ -70,7 +70,7 @@ public class CameraService extends MicroService {
             }
         });
 
-         // Subscribe to CrashedBroadcast in order to terminate in case of a sensor's crash
+        // Subscribe to CrashedBroadcast in order to terminate in case of a sensor's crash
         subscribeBroadcast(CrashedBroadcast.class, crash -> {
             camera.setStatus(STATUS.DOWN);
             sendBroadcast(new TerminatedBroadcast(getName()));

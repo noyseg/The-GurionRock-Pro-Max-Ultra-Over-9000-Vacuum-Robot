@@ -38,13 +38,13 @@ public class LiDarService extends MicroService {
     /**
      * Initializes the LiDarService.
      * Registers the service to handle DetectObjectsEvents and TickBroadcasts,
-     * and sets up the necessary callbacks for processing data.
+     * And sets up the necessary callbacks for processing data.
      */
     @Override
     protected void initialize() {
         System.out.println("LiDarService " + getName() + " started");
 
-        // Handle DetectObjectsEvent
+        // Subscribe to TickBroadcast
         subscribeEvent(DetectObjectsEvent.class, ev -> { 
             if (lidarWorker.getStatus() == STATUS.UP){
                 // 
@@ -60,15 +60,18 @@ public class LiDarService extends MicroService {
             }
         });
 
-        // Handle TickBroadcast
+        // Subscribe to TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
             if (lidarWorker.getStatus() == STATUS.UP)
+                // Process only if the camera is active
                 processTick(tick);
         });
 
+         // Subscribe to TerminatedBroadcast to shuts down when TimeService ends, keep track of camera's counter 
         subscribeBroadcast(TerminatedBroadcast.class, Terminated -> {
-            if(Terminated.getSenderName().startsWith("c")){
-                lidarWorker.setCameraCount();
+            // One of camera shuts down
+            if(Terminated.getSenderName().startsWith("C")){
+                lidarWorker.decrementCameraCount(); // Decrement CameraCount by one
             }
             if (Terminated.getSenderName().equals("TimeService")) {
                 lidarWorker.setStatus(STATUS.DOWN);
@@ -77,11 +80,11 @@ public class LiDarService extends MicroService {
             }
         });
 
+        // Subscribe to CrashedBroadcast in order to terminate in case of a sensor's crash
         subscribeBroadcast(CrashedBroadcast.class, Crashed -> {
-            System.out.println("Crashed");
             lidarWorker.setStatus(STATUS.DOWN);
-            ErrorCoordinator.getInstance().setLastFramesLidars(getName(),lidarWorker.getLastTrackedObjectList());;
             sendBroadcast(new TerminatedBroadcast(getName())); 
+            ErrorCoordinator.getInstance().setLastFramesLidars(getName(),lidarWorker.getLastTrackedObjectList());
             terminate();
         });
     }
@@ -95,20 +98,20 @@ public class LiDarService extends MicroService {
      */
     private void processTick(TickBroadcast tick){
         this.currentTick = tick.getCurrentTime();
-        // lidarErrorInTime will return true if there is an error
+        // lidarErrorInTime will return true if there is an error in the relevant lidar data base at tick time
         if (lidarWorker.getLiDarDataBase().lidarErrorInTime(currentTick)){
             handleCrash("LiDar Disconnection");
         }
         else{
             checkTerminationConditionsAndTerminate();
-            // As long as we have detected objects that can be send at this moment
             List<TrackedObject> trackedObjects = new LinkedList<>();
             while (!eventsToProcess.isEmpty() && eventsToProcess.peek().getTimeOfDetectedObjects() + lidarWorker.getFrequency() <= currentTick){
                 DetectObjectsEvent dob = eventsToProcess.poll();
                 processDetectedObjects(dob , trackedObjects);
             }
+            // We can send trackedObject event 
             if (!trackedObjects.isEmpty()){
-                TrackedObjectsEvent tracked = new TrackedObjectsEvent(trackedObjects,getName()); // Sends event to fusion slum
+                TrackedObjectsEvent tracked = new TrackedObjectsEvent(trackedObjects,getName());
                 sendEvent(tracked);
             }
         }
@@ -118,28 +121,29 @@ public class LiDarService extends MicroService {
      * Converts a detected objects event into a list of tracked objects and resolves the event.
      * 
      * @param ev The {@link DetectObjectsEvent} containing detected objects.
-     * @return A list of {@link TrackedObject} that represents the detected objects.
+     * @param trackedObjectsToSend A list where processed tracked objects will be stored.
      */
 
     // Gets detected DetectObjectsEvent ready right now to be sent, and return correspondent List of TrackedObjects  
     private void processDetectedObjects(DetectObjectsEvent ev, List<TrackedObject> trackedObjectsToSend){
-        StampedDetectedObjects toProcess = ev.getStampedDetectedObjects(); // Extract the StampedDetectedObjects themselves
-        List<DetectedObject> detectedObjects = toProcess.getDetectedObjects();  // Extract the DetectedObjects themselves
-        int time = toProcess.getTime();
+        StampedDetectedObjects stampedDetections = ev.getStampedDetectedObjects(); 
+        List<DetectedObject> detectedObjects = stampedDetections.getDetectedObjects(); 
+        int time = stampedDetections.getTime();
         for (DetectedObject doe : detectedObjects){
             trackedObjectsToSend.add(lidarWorker.detectToTrack(doe,time,getName()));
         }
+        // Set LastTrackedObjectList to contain the newest TrackedObject List
         lidarWorker.setLastTrackedObjectList(trackedObjectsToSend);
-        StatisticalFolder.getInstance().incrementTrackedObjects(trackedObjectsToSend.size());
+        StatisticalFolder.getInstance().incrementTrackedObjects(trackedObjectsToSend.size()); // Objects were tracked to update in StatisticalFolder
         complete(ev, true);
     }
 
-     /**
-     * Handles a crash event for the LiDAR service.
-     * Logs the error, notifies the error coordinator, and broadcasts a crash event.
-     * 
-     * @param reason The reason for the crash.
-     */
+    /**
+    * Handles a crash event for the LiDAR service.
+    * Logs the error, notifies the error coordinator, and broadcasts a crash event.
+    * 
+    * @param reason The reason for the crash.
+    */
     private void handleCrash(String reason) {
         ErrorCoordinator.getInstance().setLastFramesLidars(getName(), lidarWorker.getLastTrackedObjectList());
         ErrorCoordinator.getInstance().setCrashed(getName(), currentTick, reason);

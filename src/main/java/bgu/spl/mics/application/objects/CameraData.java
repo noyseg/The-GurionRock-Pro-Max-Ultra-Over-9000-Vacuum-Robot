@@ -3,6 +3,11 @@ package bgu.spl.mics.application.objects;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents data from a camera, including the camera's name and a list of detected objects.
+ * Each detected object is paired with a timestamp, providing additional context for object detection.
+ * Used for JSON reading
+ */
 public class CameraData {
 
     private String camera_key;

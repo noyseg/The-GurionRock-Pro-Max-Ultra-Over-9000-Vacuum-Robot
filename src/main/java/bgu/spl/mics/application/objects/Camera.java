@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.objects;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -9,7 +10,7 @@ import java.util.List;
 public class Camera {
     private final int id; // Unique identifier for the camera.
     private final String name; // The name for the camera.
-    private final int frequency; // Camera's frequancy 
+    private final int frequency; // Camera's frequency 
     private STATUS status; // Current operational status of the camera ((UP, DOWN, ERROR).
     private final List<StampedDetectedObjects> detectedObjectsList; // A list containing detected objects along with timestamps.
 
@@ -21,11 +22,11 @@ public class Camera {
      * @param frequency           The detection frequency of the camera.
      * @param detectedObjectsList Initial list of detected objects with timestamps.
      */
-    public Camera(int id, String name, int frequency, List<StampedDetectedObjects> detectedObjectsList ) {
+    public Camera(int id, int frequency, List<StampedDetectedObjects> detectedObjectsList) {
         this.id = id;
-        this.name = name;
+        this.name = "Camera" + String.valueOf(id);
         this.frequency = frequency;
-        this.detectedObjectsList = detectedObjectsList;
+        this.detectedObjectsList = new LinkedList<>(detectedObjectsList);
         this.status = STATUS.UP; // Cameras start in the UP (active) state.
     }
 

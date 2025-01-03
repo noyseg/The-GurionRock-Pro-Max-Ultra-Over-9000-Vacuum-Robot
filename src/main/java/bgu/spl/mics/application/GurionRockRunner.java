@@ -9,6 +9,7 @@ import java.lang.reflect.Type;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -24,7 +25,7 @@ import bgu.spl.mics.application.services.*;
  */
 public class GurionRockRunner {
 
-    static String configFilePath = "C:\\Users\\n3seg\\OneDrive\\Desktop\\GitHub\\Assignment2\\exm\\configuration_file.json";
+    static String configFilePath = "C:\\Users\\n3seg\\OneDrive\\Desktop\\GitHub\\Assignment2\\example input\\configuration_file.json";
     static Path configFileDir = Paths.get(configFilePath).getParent();
 
     /**
@@ -35,12 +36,13 @@ public class GurionRockRunner {
      * @param args Command-line arguments. The first argument is expected to be the path to the configuration file.
           * @throws InterruptedException 
           */
-         public static void main(String[] args) throws InterruptedException {
+         public static void main(String[] args){
 
         // if (args.length == 0) {
         //     System.err.println("Error: Configuration file path is required as the first argument.");
         //     return;
         // }
+
             try (FileReader mainReader = new FileReader(configFilePath)) {
             Gson gson = new Gson();
             ConfigFile config = gson.fromJson(mainReader, ConfigFile.class);
@@ -56,28 +58,31 @@ public class GurionRockRunner {
             // Start microServices in separate threads
             List<Thread> microServices = new LinkedList<>();
             for (CameraService cameraService: camerasServices){
-                microServices.add(new Thread(cameraService));
+                microServices.add(new Thread(cameraService,"Camera"));
             }
             for (LiDarService lidarService: liDarServices){
-                microServices.add(new Thread(lidarService));
+                microServices.add(new Thread(lidarService,"LiDar"));
             }
             if (poseService != null){
-                microServices.add(new Thread(poseService));
+                microServices.add(new Thread(poseService,"Pose"));
             }
-            microServices.add(new Thread(FusionSlamService));
+            microServices.add(new Thread(FusionSlamService,"FusionSlam"));
             for (Thread microService:microServices){
                 microService.start();
             }
             
-            // need to creat time service after all threads are running 
+            // need to create time service after all threads are running 
             System.out.println("Simulation initialized. Starting simulation loop...");
-            Thread timeServiceThread = new Thread(new TimeService(config.getTickTime(), config.getDuration()));
+            Thread timeServiceThread = new Thread(new TimeService(config.getTickTime(), config.getDuration()),"Time");
 
             // Delay to ensure all threads are initialized before starting the time service
-            Thread.sleep(300);
-            timeServiceThread.start();
-            
-            // Start the simulation loop or time service (not implemented here)
+            try{
+                Thread.sleep(300);
+                timeServiceThread.start();
+            }
+            catch (InterruptedException ie){
+                System.err.println("Simulation was stopped");
+            }
         } catch (IOException e) {
             System.err.println("Failed to load configuration file: " + e.getMessage());
         }
@@ -103,11 +108,11 @@ public class GurionRockRunner {
                 Type mapType = new TypeToken<Map<String, List<StampedDetectedObjects>>>() {}.getType();
                 Map<String, List<StampedDetectedObjects>> cameraData = gson.fromJson(reader, mapType);
                 System.out.println("Initializing camera's components...");
-                for (String camera: cameraData.keySet()){
-                    for (CamerasConfigurations cameraInfo: Cameras){
-                        // This is the dectedObjects list for the specipied camera   
+                for (CamerasConfigurations cameraInfo: Cameras){
+                    for (String camera: cameraData.keySet()){
+                        // This is the dectecdObjects list for the specified camera   
                         if (camera.equals(cameraInfo.getCameraKey())){
-                            Camera newCamera = new Camera(cameraInfo.getId(),cameraInfo.getCameraKey(), cameraInfo.getFrequency(),cameraData.get(camera));
+                            Camera newCamera = new Camera(cameraInfo.getId(), cameraInfo.getFrequency(),cameraData.get(camera));
                             camerasServices.add(new CameraService(newCamera));
                         }
                     }

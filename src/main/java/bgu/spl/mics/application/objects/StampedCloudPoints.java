@@ -11,9 +11,9 @@ import java.util.List;
  */
 public class StampedCloudPoints {
     
-    private String id; // The ID of the object
-    private int time; // The time the object was tracked
-    private List<List<Double>> cloudPoints; // List of cloud points
+    private final String id; // The ID of the object
+    private final int time; // The time the object was tracked
+    private final List<List<Double>> cloudPoints; // List of cloud points
 
     /**
      * Constructor to initialize all fields.
@@ -27,39 +27,29 @@ public class StampedCloudPoints {
         this.time = time;
         this.cloudPoints = cloudPoints;
     }
-
-    // Getter for id
+/**
+     * @return The ID of the object.
+     */
     public String getId() {
         return id;
     }
 
-    // Setter for id
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    // Getter for time
+    /**
+     * @return The timestamp when the object was tracked.
+     */
     public int getTime() {
         return time;
     }
 
-    // Setter for time
-    public void setTime(int time) {
-        this.time = time;
-    }
-
-    // Getter for cloudPoints
+    /**
+     * @return The list of cloud points associated with the object.
+     */
     public List<List<Double>> getCloudPoints() {
         return cloudPoints;
     }
 
-    // Setter for cloudPoints
-    public void setCloudPoints(List<List<Double>> cloudPoints) {
-        this.cloudPoints = cloudPoints;
-    }
-
     /**
-     * Returns a string representation of the object.
+     * Returns a string representation of the StampedCloudPoints object.
      *
      * @return A string representation of the StampedCloudPoints object.
      */

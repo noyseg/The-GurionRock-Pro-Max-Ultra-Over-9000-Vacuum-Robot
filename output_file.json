@@ -1,12 +1,12 @@
 {
-  "systemRuntime": 46,
-  "numDetectedObjects": 30,
-  "numTrackedObjects": 30,
-  "numLandmarks": 18,
+  "systemRuntime": 22,
+  "numDetectedObjects": 13,
+  "numTrackedObjects": 13,
+  "numLandmarks": 7,
   "landMarks": [
     {
       "id": "Wall_4",
-      "description": "Far wall near exit",
+      "description": "Wall",
       "coordinates": [
         {
           "x": 1.1887387639977982,
@@ -19,8 +19,22 @@
       ]
     },
     {
+      "id": "Wall_3",
+      "description": "Wall",
+      "coordinates": [
+        {
+          "x": -2.6882128166564954,
+          "y": 5.78546831239456
+        },
+        {
+          "x": -2.8529412210562732,
+          "y": 5.763747954999182
+        }
+      ]
+    },
+    {
       "id": "Circular_Base_1",
-      "description": "Circular base near stand",
+      "description": "Circular Base",
       "coordinates": [
         {
           "x": 3.2468144035674857,
@@ -33,106 +47,36 @@
       ]
     },
     {
-      "id": "Wall_3",
-      "description": "Wall segment near corner",
-      "coordinates": [
-        {
-          "x": 21.03728396129396,
-          "y": 13.971347210982792
-        },
-        {
-          "x": 20.988610730930727,
-          "y": 14.112947659582927
-        }
-      ]
-    },
-    {
-      "id": "Wall_2",
-      "description": "Wall segment near back",
-      "coordinates": [
-        {
-          "x": 18.809204182731282,
-          "y": 14.111333494831584
-        },
-        {
-          "x": 18.598995830491305,
-          "y": 14.035094078198503
-        }
-      ]
-    },
-    {
       "id": "Wall_1",
-      "description": "Wall segment near entry",
+      "description": "Wall",
       "coordinates": [
         {
-          "x": 9.969781075021466,
-          "y": 7.812063052595725
+          "x": -1.260438231426796,
+          "y": 3.124125914456589
         },
         {
-          "x": 10.04806732487217,
-          "y": 7.8219095082877725
+          "x": -1.3038657317253883,
+          "y": 2.9438188258406823
         }
       ]
     },
     {
-      "id": "Circular_Base_2",
-      "description": "Circular base near corner",
+      "id": "Chair_Base_1",
+      "description": "Chair Base",
       "coordinates": [
         {
-          "x": 24.62080485291738,
-          "y": 15.340120800865513
+          "x": 0.037252720247020754,
+          "y": 6.086392198939979
         },
         {
-          "x": 24.459238713816873,
-          "y": 15.185536252167545
-        }
-      ]
-    },
-    {
-      "id": "Table_2",
-      "description": "Square table in back",
-      "coordinates": [
-        {
-          "x": 29.20657777722878,
-          "y": 20.697259375085483
-        },
-        {
-          "x": 29.302846245908427,
-          "y": 20.80085658517377
-        }
-      ]
-    },
-    {
-      "id": "Table_1",
-      "description": "Round table in center",
-      "coordinates": [
-        {
-          "x": 7.99511551021409,
-          "y": 8.058340417941569
-        },
-        {
-          "x": 8.13035048979266,
-          "y": 8.0862808688841
-        }
-      ]
-    },
-    {
-      "id": "Table_3",
-      "description": "Round table near center",
-      "coordinates": [
-        {
-          "x": 31.753429757239022,
-          "y": 25.756613250560484
-        },
-        {
-          "x": 31.878064890246193,
-          "y": 25.823442013980774
+          "x": 0.16704577698634138,
+          "y": 5.7502052241458035
         }
       ]
     },
     {
       "id": "Door",
-      "description": "Main door near side",
+      "description": "Door",
       "coordinates": [
         {
           "x": -2.913332578606659,
@@ -145,114 +89,16 @@
       ]
     },
     {
-      "id": "Chair_Base_4",
-      "description": "Chair base near corner",
-      "coordinates": [
-        {
-          "x": 30.551800627224374,
-          "y": 19.29615342122774
-        },
-        {
-          "x": 30.505058835328228,
-          "y": 19.16267981001437
-        }
-      ]
-    },
-    {
-      "id": "Chair_Base_2",
-      "description": "Chair base near desk",
-      "coordinates": [
-        {
-          "x": 8.384425052121363,
-          "y": 8.501253294588919
-        },
-        {
-          "x": 8.622600162764826,
-          "y": 8.63138033889577
-        }
-      ]
-    },
-    {
-      "id": "Chair_Base_3",
-      "description": "Chair base near wall",
-      "coordinates": [
-        {
-          "x": 22.945786612923328,
-          "y": 16.511409521565827
-        },
-        {
-          "x": 23.033275436934268,
-          "y": 16.446431935873687
-        }
-      ]
-    },
-    {
-      "id": "Chair_Base_1",
-      "description": "Chair base near table",
-      "coordinates": [
-        {
-          "x": 2.29839810001324,
-          "y": 7.400817435232531
-        },
-        {
-          "x": 2.412440546461461,
-          "y": 7.070864080569038
-        }
-      ]
-    },
-    {
-      "id": "Wall_7",
-      "description": "Wall segment near side hall",
-      "coordinates": [
-        {
-          "x": 29.82350183668684,
-          "y": 17.51773036832021
-        },
-        {
-          "x": 29.71624025589424,
-          "y": 17.71393167638382
-        }
-      ]
-    },
-    {
-      "id": "Wall_6",
-      "description": "Wall segment near hallway",
-      "coordinates": [
-        {
-          "x": 15.447011832622312,
-          "y": 13.503456619501515
-        },
-        {
-          "x": 15.30559586127691,
-          "y": 13.502222501016082
-        }
-      ]
-    },
-    {
       "id": "Wall_5",
-      "description": "Wall segment near back",
+      "description": "Wall",
       "coordinates": [
         {
-          "x": 5.6819660601307564,
-          "y": 3.6986432270894074
+          "x": 0.8142376183545283,
+          "y": 1.7138954090461365
         },
         {
-          "x": 5.818789641664279,
-          "y": 3.6628758182324654
-        }
-      ]
-    },
-    {
-      "id": "Door_Frame",
-      "description": "Frame of door near entry",
-      "coordinates": [
-        {
-          "x": 17.76770023578348,
-          "y": 13.75393569184041
-        },
-        {
-          "x": 18.031222331672264,
-          "y": 13.65119278464783
+          "x": 0.8500729658054946,
+          "y": 1.6842067124155164
         }
       ]
     }

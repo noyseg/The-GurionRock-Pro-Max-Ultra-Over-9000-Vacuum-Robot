@@ -22,10 +22,10 @@ class MessageBusTest {
 
     @BeforeEach
     void setUp() {
-        messageBus = MessageBusImpl.getIstance(); // Create a fresh instance
+        messageBus = MessageBusImpl.getInstance(); // Create a fresh instance
         testMicroService = new TimeService(4, 3);
         poseEvent = new PoseEvent(new Pose(1.0f, 1.0f, 30.0f, 5));
-        tickBroadcast = new TickBroadcast("TimeService", 5);
+        tickBroadcast = new TickBroadcast(5);
 
     }
     @AfterEach
@@ -197,7 +197,7 @@ class MessageBusTest {
         // Test sending a broadcast to a single subscriber
         messageBus.register(testMicroService);
         messageBus.subscribeBroadcast(TickBroadcast.class, testMicroService);
-        TickBroadcast broadcast = new TickBroadcast("TimeService", 1);
+        TickBroadcast broadcast = new TickBroadcast(1);
         messageBus.sendBroadcast(broadcast);
         // Assert the broadcast is inside the microservice's queue'
         assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(broadcast));
@@ -207,14 +207,14 @@ class MessageBusTest {
         MicroService anotherService = new TimeService(2, 2);
         messageBus.register(anotherService);
         messageBus.subscribeBroadcast(TickBroadcast.class, anotherService);
-        TickBroadcast broadcastMulti = new TickBroadcast("TimeService", 2);
+        TickBroadcast broadcastMulti = new TickBroadcast(2);
         messageBus.sendBroadcast(broadcastMulti);
         assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(broadcastMulti));
         assertTrue(messageBus.getMicroServicesQueues().get(anotherService).contains(broadcastMulti));
 
         // Test sending multiple broadcasts in succession
-        TickBroadcast broadcast1 = new TickBroadcast("TimeService", 4);
-        TickBroadcast broadcast2 = new TickBroadcast("TimeService", 5);
+        TickBroadcast broadcast1 = new TickBroadcast(4);
+        TickBroadcast broadcast2 = new TickBroadcast(5);
         messageBus.sendBroadcast(broadcast1);
         messageBus.sendBroadcast(broadcast2);
         assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(broadcast1));
@@ -230,7 +230,7 @@ class MessageBusTest {
         for (int i = 0; i < threadCount; i++) {
             final int index = i;
             new Thread(() -> {
-                TickBroadcast concurrentBroadcast = new TickBroadcast("TimeService", 10 + index);
+                TickBroadcast concurrentBroadcast = new TickBroadcast(10 + index);
                 tickArray[index] = concurrentBroadcast;
                 messageBus.sendBroadcast(concurrentBroadcast);
                 latch.countDown();
@@ -307,7 +307,7 @@ class MessageBusTest {
 
     @Test
     void register() {
-        MessageBusImpl messageBus = MessageBusImpl.getIstance();
+        MessageBusImpl messageBus = MessageBusImpl.getInstance();
 
         // Test registering a single MicroService
         messageBus.register(testMicroService);
@@ -415,7 +415,7 @@ class MessageBusTest {
 
     @Test
     void awaitMessage() throws InterruptedException {
-        MessageBus messageBus = MessageBusImpl.getIstance();
+        MessageBus messageBus = MessageBusImpl.getInstance();
         MicroService microService = new TimeService(1, 1);
     
         messageBus.register(microService);

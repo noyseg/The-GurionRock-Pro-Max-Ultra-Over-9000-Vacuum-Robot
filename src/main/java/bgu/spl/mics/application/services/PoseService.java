@@ -1,12 +1,11 @@
 package bgu.spl.mics.application.services;
 
-import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
-import bgu.spl.mics.application.messages.CrashedBroadcast;
 import bgu.spl.mics.application.messages.PoseEvent;
-import bgu.spl.mics.application.messages.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.TickBroadcast;
-import bgu.spl.mics.application.objects.FusionSlam;
+import bgu.spl.mics.application.messages.CrashedBroadcast;
+import bgu.spl.mics.application.messages.TerminatedBroadcast;
+
 import bgu.spl.mics.application.objects.GPSIMU;
 import bgu.spl.mics.application.objects.Pose;
 import bgu.spl.mics.application.objects.STATUS;
@@ -34,60 +33,72 @@ public class PoseService extends MicroService {
      */
     @Override
     protected void initialize() {
-        // Handle TickBroadcast 
+
+        System.out.println(getName() + " started");
+
+        // Handle TickBroadcast to process each tick and generate PoseEvents.
         subscribeBroadcast(TickBroadcast.class, tick -> {
-            // He is the only one that was left
-            if (gpsimu.getCameraCount() == 0 & gpsimu.getLidarCount() == 0){
+            // If no cameras or lidars are left, set GPSIMU status to DOWN and terminate.
+            if (gpsimu.getCameraCount() == 0 && gpsimu.getLidarCount() == 0) {
                 gpsimu.setStatus(STATUS.DOWN);
                 sendBroadcast(new TerminatedBroadcast(getName()));
-                terminate();  
+                terminate();
             }
-            //if(FusionSlam.getInstance().getMicroservicesCounter() == 1){
-            //     gpsimu.setStatus(STATUS.DOWN);
-            //     sendBroadcast(new TerminatedBroadcast(getName()));
-            //     terminate();  
-            // }
-            if (gpsimu.getStatus() == STATUS.UP){
+            // Process tick if the GPSIMU system is up.
+            if (gpsimu.getStatus() == STATUS.UP) {
                 processTick(tick);
             }
         });
 
-        // Handle CrashedBroadcast 
+        // Handle CrashedBroadcast to shut down GPSIMU if a crash occurs.
         subscribeBroadcast(CrashedBroadcast.class, crash -> {
-            System.out.println("Crashed from gpu");
             gpsimu.setStatus(STATUS.DOWN);
             sendBroadcast(new TerminatedBroadcast(getName()));
-            terminate();  
+            terminate();
         });
-        // Handle CrashedBroadcast 
+
+        // Handle TerminatedBroadcast, update its lidarCount and cameraCount if needed  
         subscribeBroadcast(TerminatedBroadcast.class, terminate -> {
-            // Only Pose Service was left 
-            if (terminate.getSenderName().startsWith("L")){
-                gpsimu.setLidarCount();
+            // If a lidar service terminates, decrement the lidar count.
+            if (terminate.getSenderName().startsWith("L")) {
+                gpsimu.decrementLidarCount();
             }
-            if (terminate.getSenderName().startsWith("c")){
-                gpsimu.setCameraCount();
+            // If a camera service terminates, decrement the camera count.
+            if (terminate.getSenderName().startsWith("C")) {
+                gpsimu.decrementCameraCount();
             }
-            if (terminate.getSenderName().equals("TimeService")){
+            // If the TimeService terminates, set the GPSIMU status to DOWN and terminate the service.
+            if (terminate.getSenderName().equals("TimeService")) {
                 gpsimu.setStatus(STATUS.DOWN);
                 sendBroadcast(new TerminatedBroadcast(getName()));
-                terminate();  
+                terminate();
             }
         });
     }
 
+     /**
+     * Processes a tick event, updating the robot's current pose and broadcasting a PoseEvent.
+     * 
+     * - Sets the current tick in the GPSIMU system.
+     * - If a valid pose exists for the current tick, a PoseEvent is generated and sent.
+     * - If no valid pose is found, the GPSIMU status is set to DOWN and the service is terminated.
+     *
+     * @param tick The TickBroadcast that provides the current tick time.
+     */
     private void processTick(TickBroadcast tick) {
         gpsimu.setCurrentTick(tick.getCurrentTime());
         Pose pose = gpsimu.getPose();
-        if (pose != null){
+        
+        if (pose != null) {
+            // Generate and send a PoseEvent if a valid pose is available.
             PoseEvent poseEvent = new PoseEvent(gpsimu.getPose());
             gpsimu.updateLastPose();
-            Future<Boolean> future = (Future<Boolean>) sendEvent(poseEvent);
-        }
-        else{
+            sendEvent(poseEvent);
+        } else {
+            // If no pose is found, set GPSIMU status to DOWN and terminate.
             gpsimu.setStatus(STATUS.DOWN);
             sendBroadcast(new TerminatedBroadcast(getName()));
-            terminate();  
+            terminate();
         }
     }
 }

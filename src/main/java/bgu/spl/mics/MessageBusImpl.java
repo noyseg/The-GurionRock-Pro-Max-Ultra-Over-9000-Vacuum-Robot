@@ -1,7 +1,5 @@
 package bgu.spl.mics;
 
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -20,20 +18,20 @@ public class MessageBusImpl implements MessageBus {
     }
 
     // to check yellow line
-    private final ConcurrentHashMap<Class<? extends Event>, BlockingQueue<MicroService>> eventSubscribers;
+    private final ConcurrentHashMap<Class<? extends Event<?>>, BlockingQueue<MicroService>> eventSubscribers;
     private final ConcurrentHashMap<Class<? extends Broadcast>, BlockingQueue<MicroService>> broadcastSubscribers;
     private final ConcurrentHashMap<MicroService, BlockingQueue<Message>> microServicesQueues;
     private final ConcurrentHashMap<Event<?>, Future<?>> eventAndFutureUnresolved;
 
     // CopyOnWriteArrayList<MicroService>> broadcastSubscribers
     private MessageBusImpl() {
-        eventSubscribers = new ConcurrentHashMap<>(3); // do it need to be size of 2? beacuese of pose events
+        eventSubscribers = new ConcurrentHashMap<>(3); // Do it need to be size of 2? because of pose events
         broadcastSubscribers = new ConcurrentHashMap<>(3);
         microServicesQueues = new ConcurrentHashMap<>();
         eventAndFutureUnresolved = new ConcurrentHashMap<>();
     }
 
-    public static MessageBusImpl getIstance() {
+    public static MessageBusImpl getInstance() {
         return MessageBusHolder.instance;
     }
 
@@ -67,6 +65,7 @@ public class MessageBusImpl implements MessageBus {
 
     @Override
     public <T> void complete(Event<T> e, T result) {
+        @SuppressWarnings("unchecked")
         Future<T> future = (Future<T>) eventAndFutureUnresolved.get(e);
         future.resolve(result);
         eventAndFutureUnresolved.remove(e);
@@ -75,7 +74,12 @@ public class MessageBusImpl implements MessageBus {
     @Override
     public void sendBroadcast(Broadcast b) {
         for (MicroService ms : broadcastSubscribers.get(b.getClass())) {
-            microServicesQueues.get(ms).add(b);
+            try {
+                microServicesQueues.get(ms).add(b);
+            }
+            catch (NullPointerException np){
+                System.out.println("You try to send brodcast to unregistered microservice");
+            }
         }
     }
 
@@ -85,42 +89,58 @@ public class MessageBusImpl implements MessageBus {
     public <T> Future<T> sendEvent(Event<T> e) {
         // To check if possible that there will be something to process but no microservice in queue to handle it
         BlockingQueue<MicroService> eventOptions = eventSubscribers.get(e.getClass());
+        // Synchronized eventOptions in case there is only one microservice that can b active 
         synchronized (eventOptions) {
-            MicroService m = eventOptions.poll();
-            if (m != null) {
-                eventOptions.add(m); // keep round robin
-                Future<T> future = new Future<T>();
-                eventAndFutureUnresolved.put(e, future);
-                microServicesQueues.get(m).add(e);
-                return future;
+            if (eventOptions != null){
+                MicroService m = eventOptions.poll();
+                if (m != null) {
+                    eventOptions.add(m); // keep round robin
+                    Future<T> future = new Future<T>();
+                    eventAndFutureUnresolved.put(e, future);
+                    try {
+                        microServicesQueues.get(m).add(e);
+                    }
+                    catch (NullPointerException np){
+                        System.out.println("You try to send event to unregistered microservice");
+                        return null;
+                    }
+                    return future;
+                }
             }
         }
         return null; // In case no micro-service has subscribed
     }
 
-    // where intitilization of events creation and all of those??
+    // Where initialization of events creation and all of those??
     @Override
     public void register(MicroService m) {
         microServicesQueues.put(m, new LinkedBlockingQueue<Message>());
     }
 
     @Override
-    // if neccecry to do on all or handle other way
-    // Synchronized becasue we don't want to assign new messeges to MicroService m
-    public synchronized void unregister(MicroService m) {
-        if (microServicesQueues.containsKey(m)) {
-            for (BlockingQueue<MicroService> ev : eventSubscribers.values()) {
+    // if necessary to do on all or handle other way
+    // Synchronized because we don't want to assign new messages to MicroService m
+    public void unregister(MicroService m) {
+        BlockingQueue<Message> needToFinished = microServicesQueues.remove(m);
+        // Microservice is registered 
+        if (needToFinished != null){
+            for (Message mes : needToFinished) {
+                // We need to resolve events
+                if (mes instanceof Event<?>){
+                    eventAndFutureUnresolved.get(mes).resolve(null); // We want to resolve any waiting Futures
+                    eventAndFutureUnresolved.remove(mes);
+                }
+            }
+        }
+        for (BlockingQueue<MicroService> ev : eventSubscribers.values()) {
+            synchronized(ev){
                 ev.remove(m);
             }
-            for (BlockingQueue<MicroService> bc : broadcastSubscribers.values()) {
+        }
+        for (BlockingQueue<MicroService> bc : broadcastSubscribers.values()) {
+            synchronized(bc){
                 bc.remove(m);
             }
-            for (Message mes : microServicesQueues.get(m)) {
-                // if neccesery???
-                eventAndFutureUnresolved.get(mes).resolve(null); // We want to resolve any waiting Futures
-                eventAndFutureUnresolved.remove(mes);
-            }
-            microServicesQueues.remove(m);
         }
     }
 
@@ -138,7 +158,7 @@ public class MessageBusImpl implements MessageBus {
         return this.microServicesQueues;
     }
 
-    public ConcurrentHashMap<Class<? extends Event>, BlockingQueue<MicroService>> getEventSubscribers() {
+    public ConcurrentHashMap<Class<? extends Event<?>>, BlockingQueue<MicroService>> getEventSubscribers() {
         return this.eventSubscribers;
     }
 

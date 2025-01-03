@@ -1,6 +1,5 @@
 package bgu.spl.mics.application.objects;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -10,10 +9,10 @@ import java.util.List;
  */
 public class TrackedObject {
 
-    private int time; 
-    private String id;
-    private String description; 
-    private List<CloudPoint> coordinates;
+    private final int time; 
+    private final String id;
+    private final String description; 
+    private final List<CloudPoint> coordinates;
     
     /**
      *
@@ -38,30 +37,11 @@ public class TrackedObject {
     }
 
     /**
-    * Sets the time the object was tracked
-    * 
-    * @param time The time the object was tracked
-    */
-    public void setTime(int time) {
-        this.time = time;
-    }
-
-    /**
      * @return The id of the object
      */
     public String getId() {
         return id;
     }
-
-    /**
-    * Sets the id of the object.
-    * 
-    * @param id The id to set
-    */
-    public void setId(String id) {
-        this.id = id;
-    }
-
 
     /**
      * @return The description of the tracked object
@@ -70,30 +50,11 @@ public class TrackedObject {
         return description;
     }
 
-
-    /**
-    * Sets the description of the tracked object
-    * 
-    * @param id The description of the tracked object
-    */
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
     /**
      * @return the coordinates of the object
      */
     public List<CloudPoint> getCoordinates(){
         return this.coordinates;
-    }
-    
-    /**
-    * Sets the coordinates of the object
-    * 
-    * @param cloudPoint the coordinates of the object
-     */
-    public void setCoordinates(List<CloudPoint> cloudPoints){
-        this.coordinates = cloudPoints;
     }
 
     @Override
