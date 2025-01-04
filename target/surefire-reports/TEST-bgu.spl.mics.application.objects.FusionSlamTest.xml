@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="bgu.spl.mics.application.objects.LiDarWorkerTrackerTest" time="0.039" tests="3" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="bgu.spl.mics.application.objects.FusionSlamTest" time="0.033" tests="1" errors="0" skipped="0" failures="0">
   <properties>
     <property name="exec.mainClass" value="bgu.spl.mics.application.GurionRockRunner"/>
     <property name="java.specification.version" value="17"/>
@@ -61,7 +61,5 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="detectToTrackWithSingleObject" classname="bgu.spl.mics.application.objects.LiDarWorkerTrackerTest" time="0.037"/>
-  <testcase name="detectToTrackAfterClearing" classname="bgu.spl.mics.application.objects.LiDarWorkerTrackerTest" time="0.0"/>
-  <testcase name="detectToTrackWithMultipleObjects" classname="bgu.spl.mics.application.objects.LiDarWorkerTrackerTest" time="0.001"/>
+  <testcase name="updateLandMark" classname="bgu.spl.mics.application.objects.FusionSlamTest" time="0.016"/>
 </testsuite>

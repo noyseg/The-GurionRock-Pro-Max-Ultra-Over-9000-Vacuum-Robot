@@ -66,7 +66,7 @@ public class FusionSlamService extends MicroService {
             List<TrackedObject> ObjectsToUpdate = waitingTracked.get(pose.getPose().getTime());
             if (ObjectsToUpdate != null){
                 for(TrackedObject ObjectToUpdate :ObjectsToUpdate){
-                    updateLandMarks(ObjectToUpdate,pose.getPose());
+                    fusionSlam.setLandMarks(ObjectToUpdate,pose.getPose());
                 }
             }
         });
@@ -107,7 +107,7 @@ public class FusionSlamService extends MicroService {
         for (TrackedObject trackO: trackedObjects){
             // If FusionSLAM has the relevant pose
             if (trackO.getTime() <= fusionSlam.getPoses().size()){
-                updateLandMarks(trackO,fusionSlam.getPoses().get(trackO.getTime()-1));
+                fusionSlam.setLandMarks(trackO,fusionSlam.getPoses().get(trackO.getTime()-1));
             }
             // Store tracked object for later use when pose is available
             else{
@@ -121,27 +121,6 @@ public class FusionSlamService extends MicroService {
                     waitingTracked.put(trackO.getTime(),startWaiting);
                 }
             }
-        }
-    }
-
-    /**
-     * Updates landmarks with the given tracked object and current pose.
-     * If the landmark is new, it adds it; if it already exists, it updates its coordinates.
-     *
-     * @param trackedObject The tracked object to update.
-     * @param currentPose   The current pose to be used for updating the landmark's position.
-     */
-    public void updateLandMarks(TrackedObject trackedObject,Pose currentPose){
-        List<CloudPoint> globalCloudPoints = fusionSlam.poseTransformation(currentPose, trackedObject.getCoordinates());
-        // If the landmark is new, add it
-        if (fusionSlam.getLandMarks().get(trackedObject.getId()) == null){
-            LandMark newLandMark = new LandMark(trackedObject.getId(), trackedObject.getDescription(), globalCloudPoints);
-            fusionSlam.addLandMark(newLandMark);
-            StatisticalFolder.getInstance().incrementLandmarks(1);
-        } 
-        // If the landmark exists, update its coordinates
-        else{
-            fusionSlam.updateLandMark(fusionSlam.getLandMarks().get(trackedObject.getId()),globalCloudPoints);
         }
     }
 

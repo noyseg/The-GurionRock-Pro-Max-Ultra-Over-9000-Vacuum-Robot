@@ -25,7 +25,9 @@ import bgu.spl.mics.application.services.*;
  */
 public class GurionRockRunner {
 
-    //    static String configFilePath = "C:\\Users\\n3seg\\OneDrive\\Desktop\\GitHub\\Assignment2\\example input\\configuration_file.json";
+    // static String configFilePath =
+    // "C:\\Users\\n3seg\\OneDrive\\Desktop\\GitHub\\Assignment2\\example
+    // input\\configuration_file.json";
     private static Path configFileDir;
 
     /**
@@ -33,22 +35,23 @@ public class GurionRockRunner {
      * This method sets up the necessary components, parses configuration files,
      * initializes services, and starts the simulation.
      *
-     * @param args Command-line arguments. The first argument is expected to be the path to the configuration file.
+     * @param args Command-line arguments. The first argument is expected to be the
+     *             path to the configuration file.
      * @throws InterruptedException
      */
     public static void main(String[] args) {
 
-         if (args.length == 0) {
-             System.err.println("Error: Configuration file path is required as the first argument.");
-             return;
-         }
+        if (args.length == 0) {
+            System.err.println("Error: Configuration file path is required as the first argument.");
+            return;
+        }
         String configFilePath = args[0];
-        System.out.println(configFilePath);
-//        try {
-//            configFilePath = configFilePath.substring(0, configFilePath.lastIndexOf("\\"));
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
+        // try {
+        // configFilePath = configFilePath.substring(0,
+        // configFilePath.lastIndexOf("\\"));
+        // } catch (Exception e) {
+        // e.printStackTrace();
+        // }
 
         configFileDir = Paths.get(configFilePath).getParent();
         try (FileReader mainReader = new FileReader(configFilePath)) {
@@ -79,7 +82,7 @@ public class GurionRockRunner {
                 microService.start();
             }
 
-            // need to create time service after all threads are running 
+            // need to create time service after all threads are running
             System.out.println("Simulation initialized. Starting simulation loop...");
             Thread timeServiceThread = new Thread(new TimeService(config.getTickTime(), config.getDuration()), "Time");
 
@@ -118,9 +121,10 @@ public class GurionRockRunner {
                 System.out.println("Initializing camera's components...");
                 for (CamerasConfigurations cameraInfo : Cameras) {
                     for (String camera : cameraData.keySet()) {
-                        // This is the dectecdObjects list for the specified camera   
+                        // This is the dectecdObjects list for the specified camera
                         if (camera.equals(cameraInfo.getCameraKey())) {
-                            Camera newCamera = new Camera(cameraInfo.getId(), cameraInfo.getFrequency(), cameraData.get(camera));
+                            Camera newCamera = new Camera(cameraInfo.getId(), cameraInfo.getFrequency(),
+                                    cameraData.get(camera));
                             camerasServices.add(new CameraService(newCamera));
                         }
                     }
@@ -151,7 +155,8 @@ public class GurionRockRunner {
             }
             Path LidarDataPath = configFileDir.resolve(lidarPath);
             for (LidarConfigurations lidar : allLidar) {
-                LiDarWorkerTracker newLidar = new LiDarWorkerTracker(lidar.getId(), lidar.getFrequency(), LidarDataPath.toString(), numOfCameras);
+                LiDarWorkerTracker newLidar = new LiDarWorkerTracker(lidar.getId(), lidar.getFrequency(),
+                        LidarDataPath.toString(), numOfCameras);
                 liDarServices.add(new LiDarService(newLidar));
                 System.out.println(newLidar);
             }

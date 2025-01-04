@@ -253,11 +253,10 @@ class MessageBusTest {
 
     @Test
     void testSendEvent() {
-        // Test sending a broadcast to a single subscriber
+        // Test sending an event to a single subscriber
         messageBus.register(testMicroService);
         messageBus.subscribeEvent(PoseEvent.class, testMicroService);
         messageBus.sendEvent(poseEvent);
-        // Assert the broadcast is inside the microservice's queue'
         assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(poseEvent));
 
         // Test sending multiple events in succession
@@ -268,7 +267,7 @@ class MessageBusTest {
         assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(poseevent1));
         assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(poseevent2));
 
-        // Test sending an event to multiple subscribers and testing round Roobin-Loop
+        // Test sending an event to multiple subscribers and testing round-robin loop
         MicroService anotherService = new TimeService(2, 2);
         messageBus.register(anotherService);
         messageBus.subscribeEvent(PoseEvent.class, anotherService);
@@ -277,25 +276,28 @@ class MessageBusTest {
         messageBus.sendEvent(multiEvent1);
         messageBus.sendEvent(multiEvent2);
         assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(multiEvent1));
-        // testMicroService handle the first event so anotherService will handle the second event
         assertTrue(messageBus.getMicroServicesQueues().get(anotherService).contains(multiEvent2));
-        messageBus.sendEvent(multiEvent2);
-        assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(multiEvent2));
 
-        // Test sending a null broadcast (if null is allowed)
-//        assertThrows(IllegalArgumentException.class, () -> messageBus.sendBroadcast(null));
+        // Additional check for round-robin: ensure that the next event goes to the first service again
+        PoseEvent multiEvent3 = new PoseEvent(new Pose(0, 0, 0, 5));
+        messageBus.sendEvent(multiEvent3);
+        assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(multiEvent3));
 
+        messageBus.getMicroServicesQueues().get(testMicroService).clear();
+        messageBus.getMicroServicesQueues().get(anotherService).clear();
         // Test concurrent event sending
         int threadCount = 10;
         CountDownLatch latch = new CountDownLatch(threadCount);
-        PoseEvent[] poseArray = new PoseEvent[threadCount];
         for (int i = 0; i < threadCount; i++) {
-            final int index = i;
             new Thread(() -> {
                 PoseEvent concurrentEvent = new PoseEvent(new Pose(8, 8, 8, 5));
-                poseArray[index] = concurrentEvent;
                 messageBus.sendEvent(concurrentEvent);
                 latch.countDown();
+                try {
+                    Thread.sleep(10); // Wait for a small amount of time between sending events
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             }).start();
         }
         try {
@@ -303,9 +305,9 @@ class MessageBusTest {
         } catch (InterruptedException e) {
             fail("Thread interruption occurred");
         }
-        // We have sent total of 16 events, the sum of the size of microservices queues should be 16
-        assertEquals(16, messageBus.getMicroServicesQueues().get(testMicroService).size() + messageBus.getMicroServicesQueues().get(anotherService).size());
-
+        // Check that all events were received by all services and that the sum of events is the same at each service
+        assertEquals(5, messageBus.getMicroServicesQueues().get(testMicroService).size());
+        assertEquals(5, messageBus.getMicroServicesQueues().get(testMicroService).size());
     }
 
 

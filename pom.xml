@@ -23,12 +23,6 @@
             <version>5.11.4</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.11.4</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -52,6 +46,12 @@
                     <useModulePath>false</useModulePath>
                 </configuration>
             </plugin>
+<!--                &lt;!&ndash; Exec Maven Plugin &ndash;&gt;-->
+<!--                <plugin>-->
+<!--                    <groupId>org.codehaus.mojo</groupId>-->
+<!--                    <artifactId>exec-maven-plugin</artifactId>-->
+<!--                    <version>3.0.0</version>-->
+<!--                </plugin>-->
         </plugins>
     </build>
 </project>

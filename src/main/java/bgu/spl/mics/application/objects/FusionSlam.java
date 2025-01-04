@@ -93,6 +93,27 @@ public class FusionSlam {
     }
 
     /**
+     * Updates landmarks with the given tracked object and current pose.
+     * If the landmark is new, it adds it; if it already exists, it updates its coordinates.
+     *
+     * @param trackedObject The tracked object to update.
+     * @param currentPose   The current pose to be used for updating the landmark's position.
+     */
+    public void setLandMarks(TrackedObject trackedObject,Pose currentPose){
+        List<CloudPoint> globalCloudPoints = poseTransformation(currentPose, trackedObject.getCoordinates());
+        // If the landmark is new, add it
+        if (getLandMarks().get(trackedObject.getId()) == null){
+            LandMark newLandMark = new LandMark(trackedObject.getId(), trackedObject.getDescription(), globalCloudPoints);
+            addLandMark(newLandMark);
+            StatisticalFolder.getInstance().incrementLandmarks(1);
+        } 
+        // If the landmark exists, update its coordinates
+        else{
+            updateLandMark(this.landMarks.get(trackedObject.getId()),globalCloudPoints);
+        }
+    }
+
+    /**
      * Updates an existing landmark with improved coordinates.
      * The new coordinates are calculated as the average between the old and the improved ones.
      *
