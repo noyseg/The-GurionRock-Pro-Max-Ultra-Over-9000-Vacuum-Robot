@@ -235,6 +235,8 @@ public class FusionSlam {
 
          // Expected globalDoor2 - [3.019545461240221,4.257554776933302]
 
+
+        // Their door values after first detection 
         Double tx1 = -2.913332578606659;
         Double ty1 = -1.1554635639732926;
         Double tx2 = -2.7427859966862367;
