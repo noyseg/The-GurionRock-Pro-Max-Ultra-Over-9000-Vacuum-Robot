@@ -232,8 +232,9 @@ public class FusionSlam {
         List<CloudPoint> globalDoor2 = poseTransformation(p2,Door2);
         System.out.println(globalDoor2.get(0).getX());
         System.out.println(globalDoor2.get(0).getY());
+
          // Expected globalDoor2 - [3.019545461240221,4.257554776933302]
-         
+
         Double tx1 = -2.913332578606659;
         Double ty1 = -1.1554635639732926;
         Double tx2 = -2.7427859966862367;
@@ -245,6 +246,7 @@ public class FusionSlam {
         System.out.println(globalDoor.get(1).getY());
 
         // After first updateLandMark
+        // [-2.913332578606659,-1.1554635639732926],[-2.7427859966862367,-1.4731329886827864]
 
         System.err.println((globalDoor.get(0).getX() + globalDoor1.get(0).getX())/2.0);
         System.err.println((globalDoor.get(0).getY() + globalDoor1.get(0).getY())/2.0);
