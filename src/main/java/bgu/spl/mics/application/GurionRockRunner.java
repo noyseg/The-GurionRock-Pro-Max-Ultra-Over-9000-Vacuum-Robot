@@ -38,10 +38,10 @@ public class GurionRockRunner {
      */
     public static void main(String[] args) {
 
-        // if (args.length == 0) {
-        //     System.err.println("Error: Configuration file path is required as the first argument.");
-        //     return;
-        // }
+         if (args.length == 0) {
+             System.err.println("Error: Configuration file path is required as the first argument.");
+             return;
+         }
         String configFilePath = args[0];
         System.out.println(configFilePath);
 //        try {

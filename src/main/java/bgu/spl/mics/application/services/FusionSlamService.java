@@ -73,6 +73,7 @@ public class FusionSlamService extends MicroService {
 
         // Handle TerminatedBroadcast: checks when other services are terminated
         subscribeBroadcast(TerminatedBroadcast.class, terminate -> {
+            System.out.println(waitingTracked.isEmpty());
             // Time Service was terminated 
             if (terminate.getSenderName().equals("TimeService"))
                 isTimeServiceTerminated = true;
@@ -130,7 +131,7 @@ public class FusionSlamService extends MicroService {
      * @param trackedObject The tracked object to update.
      * @param currentPose   The current pose to be used for updating the landmark's position.
      */
-    private void updateLandMarks(TrackedObject trackedObject,Pose currentPose){
+    public void updateLandMarks(TrackedObject trackedObject,Pose currentPose){
         List<CloudPoint> globalCloudPoints = fusionSlam.poseTransformation(currentPose, trackedObject.getCoordinates());
         // If the landmark is new, add it
         if (fusionSlam.getLandMarks().get(trackedObject.getId()) == null){
