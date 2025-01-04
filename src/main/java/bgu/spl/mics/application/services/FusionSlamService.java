@@ -13,18 +13,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import bgu.spl.mics.MicroService;
-import bgu.spl.mics.application.messages.CrashedBroadcast;
-import bgu.spl.mics.application.messages.PoseEvent;
-import bgu.spl.mics.application.messages.TerminatedBroadcast;
-import bgu.spl.mics.application.messages.TickBroadcast;
-import bgu.spl.mics.application.messages.TrackedObjectsEvent;
-import bgu.spl.mics.application.objects.CloudPoint;
-import bgu.spl.mics.application.objects.ErrorCoordinator;
-import bgu.spl.mics.application.objects.FusionSlam;
-import bgu.spl.mics.application.objects.LandMark;
-import bgu.spl.mics.application.objects.Pose;
-import bgu.spl.mics.application.objects.StatisticalFolder;
-import bgu.spl.mics.application.objects.TrackedObject;
+import bgu.spl.mics.application.messages.*;
+import bgu.spl.mics.application.objects.*;
+
 
 /**
  * FusionSlamService integrates data from multiple sensors to build and update
@@ -34,11 +25,11 @@ import bgu.spl.mics.application.objects.TrackedObject;
  * transforming and updating the map with new landmarks.
  */
 public class FusionSlamService extends MicroService {
-    private final FusionSlam fusionSlam;
-    private boolean isTimeServiceTerminated;
-    private boolean error;
-    private final ErrorCoordinator errorCoordinator;
-    private HashMap<Integer,List<TrackedObject>> waitingTracked;
+    private final FusionSlam fusionSlam; // The FusionSLAM singleton  associated with this service 
+    private boolean isTimeServiceTerminated; // Flag indicating whether the TimeService has been terminated
+    private boolean error; // Flag indicating whether an error occurred
+    private final ErrorCoordinator errorCoordinator; // Singleton responsible for managing error information
+    private HashMap<Integer, List<TrackedObject>> waitingTracked; // Map to store tracked objects waiting for a pose
 
     /**
      * Constructor for FusionSlamService.
@@ -63,60 +54,61 @@ public class FusionSlamService extends MicroService {
     protected void initialize() {
         
         System.out.println(getName() + " started");
-        // Handle TickBroadcast
-        subscribeBroadcast(TickBroadcast.class, tick -> {
-            //StatisticalFolder.getInstance().incrementSystemRunTime(1);
-        });
 
-        // Handle TrackedObjectsEvent
+        // Handle TrackedObjectsEvent: updates landmarks with new tracked objects
         subscribeEvent(TrackedObjectsEvent.class, trackedObj -> { 
             handleTrackedObjectsEvent(trackedObj);
         });
 
-        // Handle PoseEvent
+        // Handle PoseEvent: updates landmarks using the current pose
         subscribeEvent(PoseEvent.class, pose -> {
             fusionSlam.addPose(pose.getPose());
             List<TrackedObject> ObjectsToUpdate = waitingTracked.get(pose.getPose().getTime());
             if (ObjectsToUpdate != null){
-                for(TrackedObject ObjecttToUpdate :ObjectsToUpdate){
-                    updateLandMarks(ObjecttToUpdate,pose.getPose());
+                for(TrackedObject ObjectToUpdate :ObjectsToUpdate){
+                    updateLandMarks(ObjectToUpdate,pose.getPose());
                 }
             }
         });
 
-        // Handle TerminatedBroadcast
+        // Handle TerminatedBroadcast: checks when other services are terminated
         subscribeBroadcast(TerminatedBroadcast.class, terminate -> {
             // Time Service was terminated 
             if (terminate.getSenderName().equals("TimeService"))
                 isTimeServiceTerminated = true;
-            // Camera was finished 
-            if(terminate.getSenderName().startsWith("c")){
-                fusionSlam.decrementCameraCount();
-            }
+            // Microservice counter is for all Microservices but TimeService
             if (!terminate.getSenderName().equals("TimeService"))
                 fusionSlam.decrementMicroserviceCount(); 
-            // All other microservices finished their run
+             // If all services are terminated and TimeService has ended, create output file and terminate 
             if (fusionSlam.getMicroservicesCounter() == 0 && isTimeServiceTerminated){
                 createOutputFile();
                 terminate(); // Fusion Slum's Time to finish 
             }
         });
 
+        // Handle CrashedBroadcast: handles any crash event from other services
         subscribeBroadcast(CrashedBroadcast.class, crash -> { 
             fusionSlam.decrementMicroserviceCount(); 
-            error = true; 
+            error = true; // Indicates that output file should be with error details 
         });
 
         // Subscribes to TickBroadcast, TrackedObjectsEvent, PoseEvent, TerminatedBroadcast,CrashedBroadcast
     }
 
+     /**
+     * Handles the TrackedObjectsEvent and updates landmarks with new tracked objects.
+     * If the relevant pose is not available, it stores the tracked object until the pose arrives.
+     *
+     * @param trackedObj The TrackedObjectsEvent containing the list of tracked objects.
+     */
     private void handleTrackedObjectsEvent(TrackedObjectsEvent trackedObj){
         List<TrackedObject> trackedObjects = trackedObj.getTrackedObjects();
         for (TrackedObject trackO: trackedObjects){
-            // If fusion slum holds the relevent pose 
+            // If FusionSLAM has the relevant pose
             if (trackO.getTime() <= fusionSlam.getPoses().size()){
                 updateLandMarks(trackO,fusionSlam.getPoses().get(trackO.getTime()-1));
             }
+            // Store tracked object for later use when pose is available
             else{
                 List<TrackedObject> alreadyWaiting = waitingTracked.get(trackO.getTime());
                 if (alreadyWaiting !=null ){
@@ -131,29 +123,41 @@ public class FusionSlamService extends MicroService {
         }
     }
 
+    /**
+     * Updates landmarks with the given tracked object and current pose.
+     * If the landmark is new, it adds it; if it already exists, it updates its coordinates.
+     *
+     * @param trackedObject The tracked object to update.
+     * @param currentPose   The current pose to be used for updating the landmark's position.
+     */
     private void updateLandMarks(TrackedObject trackedObject,Pose currentPose){
-        List<CloudPoint> globaCloudPoints = fusionSlam.poseTranformation(currentPose, trackedObject.getCoordinates());
-        // Adding New LandMark
+        List<CloudPoint> globalCloudPoints = fusionSlam.poseTransformation(currentPose, trackedObject.getCoordinates());
+        // If the landmark is new, add it
         if (fusionSlam.getLandMarks().get(trackedObject.getId()) == null){
-            LandMark newLandMark = new LandMark(trackedObject.getId(), trackedObject.getDescription(), globaCloudPoints);
+            LandMark newLandMark = new LandMark(trackedObject.getId(), trackedObject.getDescription(), globalCloudPoints);
             fusionSlam.addLandMark(newLandMark);
             StatisticalFolder.getInstance().incrementLandmarks(1);
         } 
-        // Improving Coordinates 
+        // If the landmark exists, update its coordinates
         else{
-            fusionSlam.updateLandMark(fusionSlam.getLandMarks().get(trackedObject.getId()),globaCloudPoints);
+            fusionSlam.updateLandMark(fusionSlam.getLandMarks().get(trackedObject.getId()),globalCloudPoints);
         }
     }
 
-    public void createOutputFile() {
+    /**
+     * Creates the output file in JSON format containing the final system statistics and data.
+     * The output file includes information about landmarks, error descriptions, and sensor data.
+     */
+    private void createOutputFile() {
         // Prepare data to serialize
         LinkedHashMap<String, Object> outputData = new LinkedHashMap<>();
         Collection<LandMark> values = fusionSlam.getLandMarks().values(); 
-        System.out.println(StatisticalFolder.getInstance().getNumTrackedObjects());
-        // Creating an ArrayList of values 
+ 
+        // Creating a list of landmarks
         ArrayList<LandMark> landMarkslist = new ArrayList<>(values);
         StatisticalFolder.getInstance().setLandMarkslist(landMarkslist);
         if (error){
+            // If an error occurred, add error details to the output
             outputData.put("error",errorCoordinator.getDescription());
             outputData.put("faultySensor", errorCoordinator.getFaultSensor());
             outputData.put("lastCamerasFrame",errorCoordinator.getLastFramesCameras());
@@ -162,6 +166,7 @@ public class FusionSlamService extends MicroService {
             outputData.put("statistics",StatisticalFolder.getInstance());
         }
         else{
+            // If no error occurred, add regular system data to the output
             outputData.put("systemRuntime", StatisticalFolder.getInstance().getSystemRunTime());
             outputData.put("numDetectedObjects", StatisticalFolder.getInstance().getNumDetectedObjects());
             outputData.put("numTrackedObjects", StatisticalFolder.getInstance().getNumTrackedObjects());
@@ -177,5 +182,4 @@ public class FusionSlamService extends MicroService {
             e.printStackTrace();
         }
     }
-
 }

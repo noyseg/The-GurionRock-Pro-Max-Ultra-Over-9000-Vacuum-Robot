@@ -27,7 +27,7 @@ import bgu.spl.mics.application.objects.StatisticalFolder;
 public class CameraService extends MicroService {
     private boolean hasDetectionsRemaining; // Indicates if the camera has detections remaining
     private final Camera camera; // The camera object associated with this service
-    private LinkedList<CameraProcessed> waitingQueue ; // Queue of camera's waiting data to be sent
+    private LinkedList<CameraProcessed> waitingQueue; // Queue of camera's waiting data to be sent
     private StampedDetectedObjects lastDetectedObjects; // The last detected objects by the camera
 
     /**
@@ -56,12 +56,12 @@ public class CameraService extends MicroService {
         // Subscribe to TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
             if (camera.getStatus() == STATUS.UP) {
-                // Process only if the camera is active.
+                // Process only if the camera is active
                 processTick(tick);
             }
         });
 
-         // Subscribe to TerminatedBroadcast to shut down when TimeService ends.
+        // Subscribe to TerminatedBroadcast to shuts down when TimeService ends.
         subscribeBroadcast(TerminatedBroadcast.class, terminate -> {
             if (terminate.getSenderName().equals("TimeService")) {
                 camera.setStatus(STATUS.DOWN);
@@ -70,7 +70,8 @@ public class CameraService extends MicroService {
             }
         });
 
-         // Subscribe to CrashedBroadcast in order to terminate in case of a sensor's crash
+        // Subscribe to CrashedBroadcast in order to terminate in case of a sensor's
+        // crash
         subscribeBroadcast(CrashedBroadcast.class, crash -> {
             camera.setStatus(STATUS.DOWN);
             sendBroadcast(new TerminatedBroadcast(getName()));
@@ -84,44 +85,45 @@ public class CameraService extends MicroService {
      *
      * @param tick The TickBroadcast containing the current time.
      */
-    private void processTick(TickBroadcast tick) { 
-         // Check if there are detections remaining
-        if (camera.getDetectedObjectsList().size() == 0){
+    private void processTick(TickBroadcast tick) {
+        // Check if there are detections remaining
+        if (camera.getDetectedObjectsList().size() == 0) {
             hasDetectionsRemaining = false;
         }
-        if (hasDetectionsRemaining){
-            // Potential detected objects at tick time 
+        if (hasDetectionsRemaining) {
+            // Potential detected objects at tick time
             StampedDetectedObjects nextDetectedObjects = camera.getDetectedObjectsList().get(0);
             int currentTickTime = tick.getCurrentTime();
-            
+
             if (currentTickTime == nextDetectedObjects.getTime()) {
                 checkForError(nextDetectedObjects, currentTickTime);
-                // Case that no error was detected 
-                if (camera.getStatus() == STATUS.UP){
+                // Case that no error was detected
+                if (camera.getStatus() == STATUS.UP) {
                     putOnWaitingQueue(nextDetectedObjects, currentTickTime);
                 }
             }
         }
-        // Objects are ready to be sent to lidar  
+        // Objects are ready to be sent to lidar
         detectionToSend(tick.getCurrentTime());
         // Checks if camera finishs its job and terminate in case it is
         checkIfFinishAndTerminate();
     }
 
-     /**
+    /**
      * Checks if there are any errors in the detected objects.
      *
      * @param detectedObjects The detected objects to check.
      * @param tickTime        The current tick time.
-     * / Sends crash brodcast in case of error detection 
+     *                        / Sends crash brodcast in case of error detection
      */
-    private void checkForError(StampedDetectedObjects nextDetectedObjects, int tickTime){
+    private void checkForError(StampedDetectedObjects nextDetectedObjects, int tickTime) {
         for (DetectedObject dob : nextDetectedObjects.getDetectedObjects()) {
-            // Error was detected 
+            // Error was detected
             if (dob.getId().equals("ERROR")) {
                 camera.setStatus(STATUS.ERROR);
                 sendBroadcast(new CrashedBroadcast(getName()));
-                //LastFrameCamera lf = new LastFrameCamera(getName(),lastDetectedObjTime ,lastDetectedObj);
+                // LastFrameCamera lf = new LastFrameCamera(getName(),lastDetectedObjTime
+                // ,lastDetectedObj);
                 ErrorCoordinator.getInstance().setLastFramesCameras(getName(), lastDetectedObjects);
                 ErrorCoordinator.getInstance().setCrashed(getName(), tickTime, dob.getDescription());
                 terminate();
@@ -130,18 +132,21 @@ public class CameraService extends MicroService {
     }
 
     /**
-     * Adds detected objects to the waiting queue for processing and updates system statistics.
+     * Adds detected objects to the waiting queue for processing and updates system
+     * statistics.
      *
-     * @param nextDetectedObjects The detected objects to be added to the waiting list.
-     * @param tickTime The current tick time when the objects were detected.
+     * @param nextDetectedObjects The detected objects to be added to the waiting
+     *                            list.
+     * @param tickTime            The current tick time when the objects were
+     *                            detected.
      */
-    private void putOnWaitingQueue(StampedDetectedObjects nextDetectedObjects, int tickTime){
+    private void putOnWaitingQueue(StampedDetectedObjects nextDetectedObjects, int tickTime) {
 
         // Calculate the processing time based on the camera's frequency
         int processingTime = tickTime + camera.getFrequency();
 
         // Create a CameraProcessed object with the processing time and detected objects
-        
+
         CameraProcessed processedObject = new CameraProcessed(processingTime, nextDetectedObjects);
         // Add the processed object to the waiting list
         waitingQueue.add(processedObject);
@@ -152,46 +157,43 @@ public class CameraService extends MicroService {
     }
 
     /**
-     * Sends detected objects to the LiDAR service if their processing time matches the current tick.
+     * Sends detected objects to the LiDAR service if their processing time matches
+     * the current tick.
      *
-     * @param tickTime The current tick time 
+     * @param tickTime The current tick time
      */
-    private void detectionToSend(int tickTime){
+    private void detectionToSend(int tickTime) {
 
         // Process detections that are ready to be sent at the current tick
-        if (camera.getStatus() == STATUS.UP && !waitingQueue.isEmpty() && waitingQueue.getFirst().getProcessionTime() == tickTime){
-            
+        if (camera.getStatus() == STATUS.UP && !waitingQueue.isEmpty()
+                && waitingQueue.getFirst().getProcessionTime() == tickTime) {
+
             // Remove the first waiting detection from the queue
             CameraProcessed toLidar = waitingQueue.removeFirst();
-            
+
             // Extract the stamped detected objects
             StampedDetectedObjects stampedToLiDar = toLidar.getDetectedObject();
 
             // Create a DetectObjectsEvent
             DetectObjectsEvent doe = new DetectObjectsEvent(stampedToLiDar, stampedToLiDar.getTime(), getName());
-            
+
             sendEvent(doe);
         }
     }
 
     /**
-     * Checks if the camera has finished all its detections and terminates the service if so.
+     * Checks if the camera has finished all its detections and terminates the
+     * service if so.
      * Conditions for termination:
      * - The camera's status is `UP` (still active).
      * - There are no remaining detections.
      * - All waiting objects have been sent.
      */
-    private void checkIfFinishAndTerminate(){
+    private void checkIfFinishAndTerminate() {
         if (camera.getStatus() == STATUS.UP && !hasDetectionsRemaining && waitingQueue.isEmpty()) {
             camera.setStatus(STATUS.DOWN);
             ErrorCoordinator.getInstance().setLastFramesCameras(getName(), lastDetectedObjects);
             sendBroadcast(new TerminatedBroadcast(getName()));
-            System.out.println("Camera proccessed list SIZE= "+cameraProcessedList.size());
-            if(!cameraProcessedList.isEmpty()){
-                for (CameraProcessed cameraProcessed : cameraProcessedList) {
-                    System.out.println("Object left= "+cameraProcessed.getDetectedObject().getDetectedObjects().size());
-                }
-            }
             terminate();
         }
     }

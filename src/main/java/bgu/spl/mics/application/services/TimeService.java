@@ -1,11 +1,11 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
-import bgu.spl.mics.application.messages.CrashedBroadcast;
+
 import bgu.spl.mics.application.messages.TerminatedBroadcast;
 import bgu.spl.mics.application.messages.TickBroadcast;
+
 import bgu.spl.mics.application.objects.FusionSlam;
-import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StatisticalFolder;
 
 /**
@@ -14,14 +14,14 @@ import bgu.spl.mics.application.objects.StatisticalFolder;
  * at regular intervals and controlling the simulation's duration.
  */
 public class TimeService extends MicroService {
-    private final int tickTime;
-    private final int duration;
-    private int currentTick;
+    private final int tickTime; // Duration of each tick in seconds
+    private final int duration; // Total number of ticks before termination
+    private int currentTick; // Current tick count
 
     /**
      * Constructor for TimeService.
      *
-     * @param TickTime The duration of each tick in seconds.
+     * @param tickTime The duration of each tick in seconds.
      * @param Duration The total number of ticks before the service terminates.
      */
     public TimeService(int TickTime, int Duration) {
@@ -33,42 +33,45 @@ public class TimeService extends MicroService {
 
     /**
      * Initializes the TimeService.
-     * Starts broadcasting TickBroadcast messages and terminates after the specified
-     * duration.
+     * - Starts a new thread to simulate the ticking process.
+     * - Broadcasts TickBroadcast messages at regular intervals based on the configured tick time.
+     * - Terminates after the specified duration or when there are no more active microservices.
      */
     @Override
     protected void initialize() {
 
-         new Thread(() -> {
+        System.out.println(getName() + " started");
+
+        // Start a new thread to handle the time simulation
+        boolean runningMicroservices = true;
+
+        // Continue running until the specified duration is reached or there are no more active microservices
+        while (runningMicroservices && currentTick < duration) {
             try {
-                boolean runningMicroservices = true;
-                while (runningMicroservices & currentTick < duration) {
-                    // Increment the tick counter
-                    currentTick++;
+                // Increment the tick counter and broadcast TickBroadcast
+                currentTick++;
+                System.out.println("Time Service: " + currentTick);
 
-                    System.out.println("Time Service: "+ currentTick);
-
-                    // Broadcast the TickBroadcast message
-                    if (FusionSlam.getInstance().getMicroservicesCounter() > 0){
-                        StatisticalFolder.getInstance().incrementSystemRunTime(1);
-                        sendBroadcast(new TickBroadcast(getName(),currentTick));
-                        // Sleep for tickTime duration
-                        Thread.sleep(tickTime*1000);
-                    }
-                    else{
-                        runningMicroservices = false;
-                    }
+                // Check if there are still active microservices
+                if (FusionSlam.getInstance().getMicroservicesCounter() > 0) {
+                    // Update the system run time and send the tick broadcast
+                    StatisticalFolder.getInstance().incrementSystemRunTime(1);
+                    sendBroadcast(new TickBroadcast(currentTick));
+                    // Sleep for tickTime duration (convert to milliseconds)
+                    Thread.sleep(tickTime * 1000);
+                } else {
+                    // Stop the loop if no microservices are running
+                    runningMicroservices = false;
                 }
-
-                
-
             } catch (InterruptedException e) {
+                // Handle interruption of the thread
+                terminate();
                 Thread.currentThread().interrupt(); // Restore interrupt status
             }
-        }).start();
-        // After duration or if there are no more microServices , broadcast termination
+        }
+
+        // After the duration or if no microservices are left, send the termination broadcast
         sendBroadcast(new TerminatedBroadcast(getName()));
         terminate();
-
     }
 }

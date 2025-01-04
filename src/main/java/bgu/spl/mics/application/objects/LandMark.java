@@ -1,6 +1,5 @@
 package bgu.spl.mics.application.objects;
 
-import java.util.Collections;
 import java.util.List;
 
 /**

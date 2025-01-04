@@ -3,18 +3,22 @@ package bgu.spl.mics.application.messages;
 import bgu.spl.mics.Broadcast;
 
 public class TickBroadcast implements Broadcast {
-    private String senderId;
-    private final int tickTime;
+    private final int tickTime; // The current system time (tick)
 
-    public TickBroadcast(String senderId, int tickTime) {
-        this.senderId = senderId;
+    /**
+     * Constructs a new TickBroadcast with the given tick time.
+     *
+     * @param tickTime The current system time (tick).
+     */
+    public TickBroadcast(int tickTime) {
         this.tickTime = tickTime;
     }
 
-    public String getSenderId() {
-        return senderId;
-    }
-
+    /**
+     * Retrieves the current system time (tick).
+     *
+     * @return The current tick time.
+     */
     public int getCurrentTime() {
         return tickTime;
     }

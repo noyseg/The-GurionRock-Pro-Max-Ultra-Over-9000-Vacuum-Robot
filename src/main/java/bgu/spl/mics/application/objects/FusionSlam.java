@@ -3,17 +3,6 @@ package bgu.spl.mics.application.objects;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-
-import bgu.spl.mics.MicroService;
 
 /**
  * Manages the fusion of sensor data for simultaneous localization and mapping
@@ -28,85 +17,102 @@ public class FusionSlam {
     private static class FusionSlamHolder {
         private static FusionSlam instance = new FusionSlam();
     }
-    private final HashMap<String, LandMark> landMarks;
-    private final List<Pose> poses;
-    private int cameraCounter;
-    private int microservicesCounter;
+    private final HashMap<String, LandMark> landMarks; // Stores the landmarks identified in the map
+    private final List<Pose> poses; // Stores the list of robot poses over time
+    private int microservicesCounter; // Keeps track of the number of active microservices
 
+    /**
+     * Private constructor to initialize the FusionSlam instance.
+     * Initializes the collections to store landmarks and poses.
+     */
     private FusionSlam() {
         this.landMarks = new HashMap<String, LandMark>();
         this.poses = new LinkedList<Pose>();
-        this.cameraCounter = 0;
         this.microservicesCounter = 0;
     }
 
+    /**
+     * Returns the singleton instance of FusionSlam.
+     *
+     * @return The FusionSlam singleton instance.
+     */
     public static FusionSlam getInstance() {
         return FusionSlamHolder.instance;
     }
 
-    // Methods for Microservices Count:
-    /**
-     * Increments the count of active microservices.
-     */
-    public void setMicroserviceCount(int microservicesCounter) {
-        this.microservicesCounter = microservicesCounter;
-    }
-
-    /**
-     * Decrements the count of active microservices.
+     /**
+     * Decrements the count of active microservices by 1.
      */
     public void decrementMicroserviceCount() {
         this.microservicesCounter -= 1;
     }
 
-        // Methods for Cameras Count:
     /**
-     * Increments the count of active cameras.
+     * Returns the map of landmarks in the global map.
+     *
+     * @return The map of landmarks.
      */
-    public void setCameraCount(int cameraCounter) {
-        this.cameraCounter = cameraCounter;
-    }
-
-    /**
-     * Decrements the count of active cameras.
-     */
-    public void decrementCameraCount() {
-        this.cameraCounter -= 1;
-    }
-
-    
-
-    public HashMap<String, LandMark> getLandMarks(){
+    public HashMap<String, LandMark> getLandMarks() {
         return this.landMarks;
     }
 
-    public List<Pose> getPoses(){
+    /**
+     * Returns the list of poses recorded by the robot over time.
+     *
+     * @return The list of poses.
+     */
+    public List<Pose> getPoses() {
         return this.poses;
     }
+    
+     /**
+     * Returns the current count of active microservices.
+     *
+     * @return The number of active microservices.
+     */
+    public int getMicroservicesCounter() {
+        return this.microservicesCounter;
+    }
 
-    // Fix if they are not in the same size
+     /**
+     * Adds a new landmark to the global map.
+     *
+     * @param lm The new landmark to be added.
+     */
     public void addLandMark(LandMark lm) {
         landMarks.put(lm.getId(), lm);
     }
 
-    public void addPose(Pose p){
+    /**
+     * Adds a new pose to the list of poses recorded by the robot.
+     *
+     * @param p The new pose to be added.
+     */
+    public void addPose(Pose p) {
         poses.add(p);
     }
 
-    // Fix if they are not in the same size
+    /**
+     * Updates an existing landmark with improved coordinates.
+     * The new coordinates are calculated as the average between the old and the improved ones.
+     *
+     * @param landM        The landmark to be updated.
+     * @param improvePoints The improved coordinates for the landmark.
+     */
     public void updateLandMark(LandMark landM, List<CloudPoint> improvePoints) {
         List<CloudPoint> oldCloudPoints  = this.landMarks.get(landM.getId()).getCoordinates();
         List<CloudPoint> newCloudPoints = new LinkedList<>();
         int lenImprovePoints = improvePoints.size();
         int lenOldCloudPoints = oldCloudPoints.size();
-        // Calculate avg of oldCloudPoints and improvePoints and put in newCloudPoints
+         // Calculate the average of oldCloudPoints and improvePoints and store in newCloudPoints
         for (int i = 0; i < lenImprovePoints && i < lenOldCloudPoints; i++){
             CloudPoint oldP = oldCloudPoints.get(i);
             CloudPoint impP = improvePoints.get(i);
             CloudPoint newCp = new CloudPoint((impP.getX()+oldP.getX())/2.0, (impP.getY()+oldP.getY())/2.0);
             newCloudPoints.add(newCp);
         }
-        // improvePoints was longer than oldCloudPoints
+
+        // If improvePoints was longer than oldCloudPoints, add the remaining improvePoints
         if (newCloudPoints.size() < lenImprovePoints){
             for (int i=lenOldCloudPoints; i < lenImprovePoints; i++){
                 CloudPoint impP = improvePoints.get(i);
@@ -114,7 +120,8 @@ public class FusionSlam {
                 newCloudPoints.add(newCp);
             }
         }
-        // oldCloudPoints was longer than improvePoints
+
+        // If oldCloudPoints was longer than improvePoints, add the remaining oldCloudPoints
         if (newCloudPoints.size() < lenOldCloudPoints){
             for (int i=lenImprovePoints; i < lenOldCloudPoints; i++){
                 CloudPoint oldP = oldCloudPoints.get(i);
@@ -122,15 +129,24 @@ public class FusionSlam {
                 newCloudPoints.add(newCp);
             }
         }
+        // Set the updated coordinates for the landmark
         this.landMarks.get(landM.getId()).setCoordinates(newCloudPoints);
     }
     
-
-    public List<CloudPoint> poseTranformation(Pose robotPosition,List<CloudPoint> cloudPoints){
+     /**
+     * Transforms a set of cloud points based on the robot's current position (pose).
+     * This transformation takes into account the robot's position and orientation to convert
+     * local coordinates to global coordinates.
+     *
+     * @param robotPosition The current pose of the robot.
+     * @param cloudPoints   The list of cloud points to be transformed.
+     * @return The transformed list of cloud points in the global frame.
+     */
+    public List<CloudPoint> poseTransformation(Pose robotPosition,List<CloudPoint> cloudPoints){
         List<CloudPoint> newCloudPoints = new LinkedList<>();
         double xRobot = robotPosition.getX();
         double yRobot = robotPosition.getY();
-        double radians = robotPosition.getYaw()*Math.PI/180;
+        double radians = robotPosition.getYaw() * Math.PI/180;
         double cos = Math.cos(radians);
         double sin = Math.sin(radians);
         for (CloudPoint cp: cloudPoints){
@@ -142,13 +158,11 @@ public class FusionSlam {
         return newCloudPoints;
     }
 
-    // Get current Microservices Counter
-    public int getMicroservicesCounter() {
-        return this.microservicesCounter;
+        /**
+     * Sets the count of active microservices.
+     */
+    public void setMicroserviceCount(int microservicesCounter) {
+        this.microservicesCounter = microservicesCounter;
     }
 
-    // Get current Microservices Counter
-    public int getCamerasCounter() {
-        return this.cameraCounter;
-    }
 }

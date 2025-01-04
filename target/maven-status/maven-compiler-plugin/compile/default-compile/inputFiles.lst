@@ -1,8 +1,6 @@
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\MicroService.java
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\application\objects\LiDarDataBase.java
-C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\application\objects\LidarProcessed.java
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\application\objects\FusionSlam.java
-C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\application\objects\main.java
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\example\ExampleManager.java
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\example\messages\ExampleEvent.java
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\Future.java
@@ -24,14 +22,12 @@ C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\application\messages\TickBroadcast.java
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\example\ServiceCreator.java
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\application\objects\CameraProcessed.java
-C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\application\objects\LastFrameCamera.java
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\application\objects\TrackedObject.java
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\application\objects\StampedCloudPoints.java
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\application\objects\CloudPoint.java
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\application\objects\Camera.java
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\application\objects\STATUS.java
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\application\objects\CamerasConfigurations.java
-C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\application\objects\ObjectDataTracker.java
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\application\services\FusionSlamService.java
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\application\objects\LandMark.java
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\application\messages\PoseEvent.java
@@ -47,9 +43,7 @@ C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\application\objects\CameraData.java
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\Callback.java
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\example\messages\ExampleBroadcast.java
-C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\application\GurionRockRunnerTest.java
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\application\objects\Cameras.java
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\application\objects\DetectedObject.java
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\application\GurionRockRunner.java
-C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\application\objects\LastFrameLidar.java
 C:\Users\noamt\Documents\workspaces\SPL assignment 2\src\main\java\bgu\spl\mics\example\services\ExampleMessageSenderService.java

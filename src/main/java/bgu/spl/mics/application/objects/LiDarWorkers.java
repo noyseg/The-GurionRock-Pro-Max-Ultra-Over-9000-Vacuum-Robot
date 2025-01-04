@@ -2,10 +2,15 @@ package bgu.spl.mics.application.objects;
 
 import java.util.List;
 
+
+/**
+ * LiDarWorkers represents a collection of LiDAR configurations along with the path of the LiDAR data.
+ * Used for JSON reading
+ */
 public class LiDarWorkers {
 
-    private List<LidarConfigurations> LidarConfigurations;
-    private String lidars_data_path;
+    private final List<LidarConfigurations> LidarConfigurations;
+    private final String lidars_data_path;
 
     /**
      * Constructor to initialize with a list of LiDARs and a data path.
@@ -26,46 +31,10 @@ public class LiDarWorkers {
     }
 
     /**
-     * Sets the list of LiDARs.
-     *
-     * @param lidars The list of LiDARs.
-     */
-    public void setLidars(List<LidarConfigurations> lidars) {
-        this.LidarConfigurations = lidars; 
-    }
-
-    /**
-     * Adds a new LiDAR to the list.
-     *
-     * @param lidar The LiDAR to add.
-     */
-    public void addLidar(LidarConfigurations lidar) {
-        LidarConfigurations.add(lidar);
-    }
-
-    /**
-     * Removes a LiDAR from the list.
-     *
-     * @param lidar The LiDAR to remove.
-     */
-    public void removeLidar(LidarConfigurations lidar) {
-        LidarConfigurations.remove(lidar);
-    }
-
-    /**
      * @return The path or description of the LiDAR data.
      */
     public String getLidarDataPath() {
         return lidars_data_path;
-    }
-
-    /**
-     * Sets the path or description of the LiDAR data.
-     *
-     * @param lidarDataPath The new path or description.
-     */
-    public void setLidarDataPath(String lidarDataPath) {
-        this.lidars_data_path = lidarDataPath;
     }
 
     @Override

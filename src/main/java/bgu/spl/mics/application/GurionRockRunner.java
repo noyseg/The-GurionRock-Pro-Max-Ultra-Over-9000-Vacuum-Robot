@@ -9,6 +9,7 @@ import java.lang.reflect.Type;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -24,10 +25,8 @@ import bgu.spl.mics.application.services.*;
  */
 public class GurionRockRunner {
 
-    static String configFilePath = "C:\\Users\\noamt\\Documents\\workspaces\\SPL assignment 2\\example input\\configuration_file.json";
-    // static String configFilePath = "C:\\Users\\n3seg\\OneDrive\\Desktop\\GitHub\\Assignment2\\example input\\configuration_file.json";
-
-    static Path configFileDir = Paths.get(configFilePath).getParent();
+    //    static String configFilePath = "C:\\Users\\n3seg\\OneDrive\\Desktop\\GitHub\\Assignment2\\example input\\configuration_file.json";
+    private static Path configFileDir;
 
     /**
      * The main method of the simulation.
@@ -35,51 +34,62 @@ public class GurionRockRunner {
      * initializes services, and starts the simulation.
      *
      * @param args Command-line arguments. The first argument is expected to be the path to the configuration file.
-          * @throws InterruptedException 
-          */
-         public static void main(String[] args) throws InterruptedException {
+     * @throws InterruptedException
+     */
+    public static void main(String[] args) {
 
         // if (args.length == 0) {
         //     System.err.println("Error: Configuration file path is required as the first argument.");
         //     return;
         // }
-            try (FileReader mainReader = new FileReader(configFilePath)) {
+        String configFilePath = args[0];
+        System.out.println(configFilePath);
+//        try {
+//            configFilePath = configFilePath.substring(0, configFilePath.lastIndexOf("\\"));
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+
+        configFileDir = Paths.get(configFilePath).getParent();
+        try (FileReader mainReader = new FileReader(configFilePath)) {
             Gson gson = new Gson();
             ConfigFile config = gson.fromJson(mainReader, ConfigFile.class);
             System.out.println("Initializing simulation components...");
             FusionSlamService FusionSlamService = new FusionSlamService(FusionSlam.getInstance());
-             
+
             // Initialize services
-            List<CameraService> camerasServices = initializeCameras(config, gson); 
-            List<LiDarService> liDarServices = initializeLidars(config,gson, camerasServices.size());
-            PoseService poseService = initializePoseService(config, gson,camerasServices.size() ,liDarServices.size() );
-            FusionSlam.getInstance().setMicroserviceCount(camerasServices.size()+ 1 +liDarServices.size());
+            List<CameraService> camerasServices = initializeCameras(config, gson);
+            List<LiDarService> liDarServices = initializeLidars(config, gson, camerasServices.size());
+            PoseService poseService = initializePoseService(config, gson, camerasServices.size(), liDarServices.size());
+            FusionSlam.getInstance().setMicroserviceCount(camerasServices.size() + 1 + liDarServices.size());
 
             // Start microServices in separate threads
             List<Thread> microServices = new LinkedList<>();
-            for (CameraService cameraService: camerasServices){
-                microServices.add(new Thread(cameraService));
+            for (CameraService cameraService : camerasServices) {
+                microServices.add(new Thread(cameraService, "Camera"));
             }
-            for (LiDarService lidarService: liDarServices){
-                microServices.add(new Thread(lidarService));
+            for (LiDarService lidarService : liDarServices) {
+                microServices.add(new Thread(lidarService, "LiDar"));
             }
-            if (poseService != null){
-                microServices.add(new Thread(poseService));
+            if (poseService != null) {
+                microServices.add(new Thread(poseService, "Pose"));
             }
-            microServices.add(new Thread(FusionSlamService));
-            for (Thread microService:microServices){
+            microServices.add(new Thread(FusionSlamService, "FusionSlam"));
+            for (Thread microService : microServices) {
                 microService.start();
             }
-            
-            // need to creat time service after all threads are running 
+
+            // need to create time service after all threads are running 
             System.out.println("Simulation initialized. Starting simulation loop...");
-            Thread timeServiceThread = new Thread(new TimeService(config.getTickTime(), config.getDuration()));
+            Thread timeServiceThread = new Thread(new TimeService(config.getTickTime(), config.getDuration()), "Time");
 
             // Delay to ensure all threads are initialized before starting the time service
-            Thread.sleep(300);
-            timeServiceThread.start();
-            
-            // Start the simulation loop or time service (not implemented here)
+            try {
+                Thread.sleep(300);
+                timeServiceThread.start();
+            } catch (InterruptedException ie) {
+                System.err.println("Simulation was stopped");
+            }
         } catch (IOException e) {
             System.err.println("Failed to load configuration file: " + e.getMessage());
         }
@@ -93,8 +103,8 @@ public class GurionRockRunner {
      * @return A list of CameraService instances.
      */
     public static List<CameraService> initializeCameras(ConfigFile config, Gson gson) {
-        List<CameraService> camerasServices = new LinkedList<>(); 
-        if (config.getCameras() != null){
+        List<CameraService> camerasServices = new LinkedList<>();
+        if (config.getCameras() != null) {
             String cameraPath = config.getCameras().getCameraDataPath();
             if (cameraPath.startsWith("./")) {
                 cameraPath = cameraPath.substring(2);
@@ -102,36 +112,36 @@ public class GurionRockRunner {
             List<CamerasConfigurations> Cameras = config.getCameras().getAllCameras();
             Path cameraDataPath = configFileDir.resolve(cameraPath);
             try (FileReader reader = new FileReader(cameraDataPath.toString())) {
-                Type mapType = new TypeToken<Map<String, List<StampedDetectedObjects>>>() {}.getType();
+                Type mapType = new TypeToken<Map<String, List<StampedDetectedObjects>>>() {
+                }.getType();
                 Map<String, List<StampedDetectedObjects>> cameraData = gson.fromJson(reader, mapType);
                 System.out.println("Initializing camera's components...");
-                for (String camera: cameraData.keySet()){
-                    for (CamerasConfigurations cameraInfo: Cameras){
-                        // This is the dectedObjects list for the specipied camera   
-                        if (camera.equals(cameraInfo.getCameraKey())){
-                            Camera newCamera = new Camera(cameraInfo.getId(),cameraInfo.getCameraKey(), cameraInfo.getFrequency(),cameraData.get(camera));
+                for (CamerasConfigurations cameraInfo : Cameras) {
+                    for (String camera : cameraData.keySet()) {
+                        // This is the dectecdObjects list for the specified camera   
+                        if (camera.equals(cameraInfo.getCameraKey())) {
+                            Camera newCamera = new Camera(cameraInfo.getId(), cameraInfo.getFrequency(), cameraData.get(camera));
                             camerasServices.add(new CameraService(newCamera));
                         }
                     }
                 }
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 System.err.println("Failed to load Camera's Data: " + e.getMessage());
             }
-    }
-    return camerasServices;
+        }
+        return camerasServices;
     }
 
     /**
      * Initializes LiDAR services based on the configuration file.
      *
-     * @param config        The configuration file object.
-     * @param gson          Gson instance for JSON parsing.
-     * @param numOfCameras  Number of cameras in the system.
+     * @param config       The configuration file object.
+     * @param gson         Gson instance for JSON parsing.
+     * @param numOfCameras Number of cameras in the system.
      * @return A list of LiDarService instances.
      */
     public static List<LiDarService> initializeLidars(ConfigFile config, Gson gson, int numOfCameras) {
-        List<LiDarService> liDarServices = new LinkedList<>(); 
+        List<LiDarService> liDarServices = new LinkedList<>();
         if (config.getLidars() != null) {
             System.out.println("Initializing lidar's components...");
             List<LidarConfigurations> allLidar = config.getLidars().getLidars();
@@ -140,8 +150,8 @@ public class GurionRockRunner {
                 lidarPath = lidarPath.substring(2);
             }
             Path LidarDataPath = configFileDir.resolve(lidarPath);
-            for (LidarConfigurations lidar: allLidar){
-                LiDarWorkerTracker newLidar = new LiDarWorkerTracker(lidar.getId(),lidar.getFrequency(), LidarDataPath.toString(),numOfCameras);
+            for (LidarConfigurations lidar : allLidar) {
+                LiDarWorkerTracker newLidar = new LiDarWorkerTracker(lidar.getId(), lidar.getFrequency(), LidarDataPath.toString(), numOfCameras);
                 liDarServices.add(new LiDarService(newLidar));
                 System.out.println(newLidar);
             }
@@ -152,27 +162,27 @@ public class GurionRockRunner {
     /**
      * Initializes the PoseService based on the configuration file.
      *
-     * @param config        The configuration file object.
-     * @param gson          Gson instance for JSON parsing.
-     * @param numOfCameras  Number of cameras in the system.
-     * @param numOfLidars   Number of LiDARs in the system.
+     * @param config       The configuration file object.
+     * @param gson         Gson instance for JSON parsing.
+     * @param numOfCameras Number of cameras in the system.
+     * @param numOfLidars  Number of LiDARs in the system.
      * @return The PoseService instance or null if initialization fails.
      */
     public static PoseService initializePoseService(ConfigFile config, Gson gson, int numOfCameras, int numOfLidars) {
         String poseFilePath = config.getPoseFilePath();
-        if (poseFilePath != null){
+        if (poseFilePath != null) {
             if (poseFilePath.startsWith("./")) {
                 poseFilePath = poseFilePath.substring(2);
             }
-                Path resolvedPosePath = configFileDir.resolve(poseFilePath);
+            Path resolvedPosePath = configFileDir.resolve(poseFilePath);
             try (FileReader reader = new FileReader(resolvedPosePath.toString())) {
-                Type listType = new TypeToken<List<Pose>>() {}.getType();
+                Type listType = new TypeToken<List<Pose>>() {
+                }.getType();
                 List<Pose> poses = gson.fromJson(reader, listType);
                 System.out.println("Initializing GPSIMU's components...");
                 GPSIMU gps = new GPSIMU(0, poses, numOfCameras, numOfLidars);
                 return new PoseService(gps);
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 System.err.println("Failed to load Poses's Data: " + e.getMessage());
             }
         }

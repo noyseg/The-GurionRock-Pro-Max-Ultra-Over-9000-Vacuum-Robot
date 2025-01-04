@@ -18,7 +18,7 @@ public class LiDarWorkerTracker {
     private final String name; // Name of the LiDAR worker
     private STATUS status; // Operational status of the LiDAR worker (UP, DOWN, ERROR)
     private List<TrackedObject> lastTrackedObjectList; // List of last tracked objects
-    private LiDarDataBase liDarDataBase; // LiDAR database instance
+    private final LiDarDataBase liDarDataBase; // LiDAR database instance
     private int numOfCameras; // Number of cameras associated with this LiDAR
 
     /**
@@ -111,7 +111,7 @@ public class LiDarWorkerTracker {
      * 
      * @return The updated number of cameras after decrementing.
      */
-    public int setCameraCount(){
+    public int decrementCameraCount(){
         return this.numOfCameras -= 1;
     }
 

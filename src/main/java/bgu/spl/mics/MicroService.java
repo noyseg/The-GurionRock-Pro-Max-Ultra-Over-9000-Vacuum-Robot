@@ -2,7 +2,6 @@ package bgu.spl.mics;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The MicroService is an abstract class that any micro-service in the system
@@ -60,7 +59,7 @@ public abstract class MicroService implements Runnable {
      */
     protected final <T, E extends Event<T>> void subscribeEvent(Class<E> type, Callback<E> callback) {
         messagesToCallbacks.put(type, callback);
-        MessageBusImpl.getIstance().subscribeEvent(type,this);
+        MessageBusImpl.getInstance().subscribeEvent(type,this);
     }
 
     /**
@@ -85,7 +84,7 @@ public abstract class MicroService implements Runnable {
      */
     protected final <B extends Broadcast> void subscribeBroadcast(Class<B> type, Callback<B> callback) {
         messagesToCallbacks.put(type, callback);
-        MessageBusImpl.getIstance().subscribeBroadcast(type, this);
+        MessageBusImpl.getInstance().subscribeBroadcast(type, this);
     }
 
     /**
@@ -101,7 +100,7 @@ public abstract class MicroService implements Runnable {
      * 	       			null in case no micro-service has subscribed to {@code e.getClass()}.
      */
     protected final <T> Future<T> sendEvent(Event<T> e) {
-        return MessageBusImpl.getIstance().sendEvent(e);
+        return MessageBusImpl.getInstance().sendEvent(e);
     }
 
     /**
@@ -111,7 +110,7 @@ public abstract class MicroService implements Runnable {
      * @param b The broadcast message to send
      */
     protected final void sendBroadcast(Broadcast b) {
-        MessageBusImpl.getIstance().sendBroadcast(b);
+        MessageBusImpl.getInstance().sendBroadcast(b);
     }
 
     /**
@@ -125,7 +124,7 @@ public abstract class MicroService implements Runnable {
      *               {@code e}.
      */
     protected final <T> void complete(Event<T> e, T result) {
-        MessageBusImpl.getIstance().complete(e, result);
+        MessageBusImpl.getInstance().complete(e, result);
     }
 
     /**
@@ -150,25 +149,26 @@ public abstract class MicroService implements Runnable {
     }
 
     /**
-     * The entry point of the micro-service. TODO: you must complete this code
+     * The entry point of the micro-service.
      * otherwise you will end up in an infinite loop.
      */
     @Override
     public final void run() {
-        MessageBusImpl.getIstance().register(this); // Registeration of Microservice to Message Bus 
+        MessageBusImpl.getInstance().register(this); // Registeration of Microservice to Message Bus 
         initialize();
         while (!terminated) {
             try{
-                Message msg = MessageBusImpl.getIstance().awaitMessage(this);
+                Message msg = MessageBusImpl.getInstance().awaitMessage(this);
+                @SuppressWarnings("unchecked")
                 Callback<Message> cb = (Callback<Message>)messagesToCallbacks.get(msg.getClass());
                 if (cb != null)
                     cb.call(msg);
             }
-            // In case microservise interrupted while waiting for a message
+            // In case microservice interrupted while waiting for a message
             catch(InterruptedException ie){
-                terminate();
-                MessageBusImpl.getIstance().unregister(this);
+                MessageBusImpl.getInstance().unregister(this);
                 Thread.currentThread().interrupt();
+                terminate();
             }
             // In case threat is unregistered 
             catch(IllegalStateException ils){
@@ -176,5 +176,6 @@ public abstract class MicroService implements Runnable {
                 terminate();
             }
         }
+        MessageBusImpl.getInstance().unregister(this);
     }
 }
