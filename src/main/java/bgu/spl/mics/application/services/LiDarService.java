@@ -46,6 +46,7 @@ public class LiDarService extends MicroService {
 
         // Subscribe to TickBroadcast
         subscribeEvent(DetectObjectsEvent.class, ev -> { 
+            System.err.println(getName()+ " !!got!! from " + ev.getSenderName() + " object that was detected at " + ev.getTimeOfDetectedObjects() + " current time: " + currentTick + " sending in: " + String.valueOf(ev.getTimeOfDetectedObjects() + lidarWorker.getFrequency()) );
             if (lidarWorker.getStatus() == STATUS.UP){
                 if (ev.getTimeOfDetectedObjects() + lidarWorker.getFrequency() <= currentTick){
                     List<TrackedObject> trackedObjects = new LinkedList<>();
@@ -62,6 +63,7 @@ public class LiDarService extends MicroService {
 
         // Subscribe to TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
+            System.out.println(getName()+ " got tick " + tick.getCurrentTime());
             if (lidarWorker.getStatus() == STATUS.UP)
                 // Process only if the camera is active
                 processTick(tick);
@@ -82,6 +84,7 @@ public class LiDarService extends MicroService {
 
         // Subscribe to CrashedBroadcast in order to terminate in case of a sensor's crash
         subscribeBroadcast(CrashedBroadcast.class, Crashed -> {
+            System.out.println(getName() + " got crash from " + Crashed.getSenderName());
             lidarWorker.setStatus(STATUS.DOWN);
             sendBroadcast(new TerminatedBroadcast(getName())); 
             ErrorCoordinator.getInstance().setLastFramesLidars(getName(),lidarWorker.getLastTrackedObjectList());
@@ -108,6 +111,7 @@ public class LiDarService extends MicroService {
             while (!eventsToProcess.isEmpty() && eventsToProcess.peek().getTimeOfDetectedObjects() + lidarWorker.getFrequency() <= currentTick){
                 DetectObjectsEvent dob = eventsToProcess.poll();
                 processDetectedObjects(dob , trackedObjects);
+                System.out.println(getName() +" *send* at time: " + currentTick + " object that was detected at time: " + trackedObjects.get(0).getTime()+ " by "+ dob.getSenderName());
             }
             // We can send trackedObject event 
             if (!trackedObjects.isEmpty()){

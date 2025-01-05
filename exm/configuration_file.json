@@ -1,21 +1,21 @@
 {
   "Cameras": {
     "CamerasConfigurations": [
-      {"id": 1, "frequency": 7, "camera_key": "camera1"},
+      {"id": 1, "frequency": 0, "camera_key": "camera1"},
       {"id": 2, "frequency": 0, "camera_key": "camera3"},
-      {"id": 3, "frequency": 2, "camera_key": "camera3"},
-      {"id": 4, "frequency": 5, "camera_key": "camera4"},
-      {"id": 5, "frequency": 7, "camera_key": "camera3"}
+      {"id": 3, "frequency": 0, "camera_key": "camera3"},
+      {"id": 4, "frequency": 0, "camera_key": "camera4"},
+      {"id": 5, "frequency": 0, "camera_key": "camera3"}
     ],
     "camera_datas_path": "./camera_data.json"
   },
   "LiDarWorkers": {
     "LidarConfigurations": [
-      {"id": 1, "frequency": 4},
-      {"id": 2, "frequency": 2},
-      {"id": 3, "frequency": 5},
-      {"id": 4, "frequency": 1},
-      {"id": 5, "frequency": 8}
+      {"id": 1, "frequency": 0},
+      {"id": 2, "frequency": 0},
+      {"id": 3, "frequency": 0},
+      {"id": 4, "frequency": 0},
+      {"id": 5, "frequency": 0}
     ],
     "lidars_data_path": "./lidar_data.json"
   },

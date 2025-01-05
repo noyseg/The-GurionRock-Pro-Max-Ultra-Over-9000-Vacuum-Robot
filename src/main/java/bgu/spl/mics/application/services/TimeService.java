@@ -42,32 +42,22 @@ public class TimeService extends MicroService {
 
         System.out.println(getName() + " started");
 
-        // Start a new thread to handle the time simulation
-        boolean runningMicroservices = true;
-
-        // Continue running until the specified duration is reached or there are no more active microservices
-        while (runningMicroservices && currentTick < duration) {
-            try {
-                // Increment the tick counter and broadcast TickBroadcast
-                currentTick++;
-                System.out.println("Time Service: " + currentTick);
-
-                // Check if there are still active microservices
-                if (FusionSlam.getInstance().getMicroservicesCounter() > 0) {
-                    // Update the system run time and send the tick broadcast
+            // Continue running until the specified duration is reached or there are no more active microservices
+            while (FusionSlam.getInstance().getFinished() == false && currentTick < duration) {
+                try{
+                    // Increment the tick counter and broadcast TickBroadcast
+                    currentTick++;
+                    System.out.println("Time Service: " + currentTick);
                     StatisticalFolder.getInstance().incrementSystemRunTime(1);
                     sendBroadcast(new TickBroadcast(currentTick));
                     // Sleep for tickTime duration (convert to milliseconds)
                     Thread.sleep(tickTime * 1000);
-                } else {
-                    // Stop the loop if no microservices are running
-                    runningMicroservices = false;
                 }
-            } catch (InterruptedException e) {
-                // Handle interruption of the thread
-                terminate();
-                Thread.currentThread().interrupt(); // Restore interrupt status
-            }
+                 catch (InterruptedException e) {
+                    // Handle interruption of the thread
+                    terminate();
+                    Thread.currentThread().interrupt(); // Restore interrupt status
+                }
         }
 
         // After the duration or if no microservices are left, send the termination broadcast

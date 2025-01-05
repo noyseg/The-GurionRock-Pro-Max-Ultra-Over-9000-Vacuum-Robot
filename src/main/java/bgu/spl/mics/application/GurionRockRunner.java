@@ -25,10 +25,6 @@ import bgu.spl.mics.application.services.*;
  */
 public class GurionRockRunner {
 
-    // static String configFilePath =
-    // "C:\\Users\\n3seg\\OneDrive\\Desktop\\GitHub\\Assignment2\\example
-    // input\\configuration_file.json";
-    private static Path configFileDir;
 
     /**
      * The main method of the simulation.
@@ -45,15 +41,10 @@ public class GurionRockRunner {
             System.err.println("Error: Configuration file path is required as the first argument.");
             return;
         }
-        String configFilePath = args[0];
-        // try {
-        // configFilePath = configFilePath.substring(0,
-        // configFilePath.lastIndexOf("\\"));
-        // } catch (Exception e) {
-        // e.printStackTrace();
-        // }
 
-        configFileDir = Paths.get(configFilePath).getParent();
+        String configFilePath = args[0];
+        Path configFileDir = Paths.get(configFilePath).getParent();
+
         try (FileReader mainReader = new FileReader(configFilePath)) {
             Gson gson = new Gson();
             ConfigFile config = gson.fromJson(mainReader, ConfigFile.class);
@@ -61,9 +52,9 @@ public class GurionRockRunner {
             FusionSlamService FusionSlamService = new FusionSlamService(FusionSlam.getInstance());
 
             // Initialize services
-            List<CameraService> camerasServices = initializeCameras(config, gson);
-            List<LiDarService> liDarServices = initializeLidars(config, gson, camerasServices.size());
-            PoseService poseService = initializePoseService(config, gson, camerasServices.size(), liDarServices.size());
+            List<CameraService> camerasServices = initializeCameras(config, gson,configFileDir);
+            List<LiDarService> liDarServices = initializeLidars(config, gson, camerasServices.size(),configFileDir);
+            PoseService poseService = initializePoseService(config, gson, camerasServices.size(), liDarServices.size(),configFileDir);
             FusionSlam.getInstance().setMicroserviceCount(camerasServices.size() + 1 + liDarServices.size());
 
             // Start microServices in separate threads
@@ -105,7 +96,7 @@ public class GurionRockRunner {
      * @param gson   Gson instance for JSON parsing.
      * @return A list of CameraService instances.
      */
-    public static List<CameraService> initializeCameras(ConfigFile config, Gson gson) {
+    public static List<CameraService> initializeCameras(ConfigFile config, Gson gson,Path configFileDir) {
         List<CameraService> camerasServices = new LinkedList<>();
         if (config.getCameras() != null) {
             String cameraPath = config.getCameras().getCameraDataPath();
@@ -144,7 +135,7 @@ public class GurionRockRunner {
      * @param numOfCameras Number of cameras in the system.
      * @return A list of LiDarService instances.
      */
-    public static List<LiDarService> initializeLidars(ConfigFile config, Gson gson, int numOfCameras) {
+    public static List<LiDarService> initializeLidars(ConfigFile config, Gson gson, int numOfCameras,Path configFileDir) {
         List<LiDarService> liDarServices = new LinkedList<>();
         if (config.getLidars() != null) {
             System.out.println("Initializing lidar's components...");
@@ -171,9 +162,10 @@ public class GurionRockRunner {
      * @param gson         Gson instance for JSON parsing.
      * @param numOfCameras Number of cameras in the system.
      * @param numOfLidars  Number of LiDARs in the system.
+     * @param configFileDir Representing the path location of the project's folder
      * @return The PoseService instance or null if initialization fails.
      */
-    public static PoseService initializePoseService(ConfigFile config, Gson gson, int numOfCameras, int numOfLidars) {
+    public static PoseService initializePoseService(ConfigFile config, Gson gson, int numOfCameras, int numOfLidars,Path configFileDir) {
         String poseFilePath = config.getPoseFilePath();
         if (poseFilePath != null) {
             if (poseFilePath.startsWith("./")) {
