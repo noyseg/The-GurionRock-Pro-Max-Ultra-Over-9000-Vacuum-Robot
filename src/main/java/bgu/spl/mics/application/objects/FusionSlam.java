@@ -112,6 +112,8 @@ public class FusionSlam {
      * @param trackedObject The tracked object to update.
      * @param currentPose   The current pose to be used for updating the landmark's
      *                      position.
+     * @pre trackedObject != null && currentPose != null
+     * @post getLandMarks().containsKey(trackedObject.getId())
      */
     public void setLandMarks(TrackedObject trackedObject, Pose currentPose) {
         List<CloudPoint> globalCloudPoints = poseTransformation(currentPose, trackedObject.getCoordinates());
@@ -183,6 +185,8 @@ public class FusionSlam {
      * @param robotPosition The current pose of the robot.
      * @param cloudPoints   The list of cloud points to be transformed.
      * @return The transformed list of cloud points in the global frame.
+     * @pre robotPosition != null && cloudPoints != null
+     * @post result.size() == cloudPoints.size() with correct global coordinates.
      */
     public static List<CloudPoint> poseTransformation(Pose robotPosition, List<CloudPoint> cloudPoints) {
         List<CloudPoint> newCloudPoints = new LinkedList<>();
