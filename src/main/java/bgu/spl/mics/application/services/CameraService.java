@@ -51,7 +51,6 @@ public class CameraService extends MicroService {
      */
     @Override
     protected void initialize() {
-        System.out.println(getName() + " started");
 
         // Subscribe to TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tick -> {
@@ -121,10 +120,7 @@ public class CameraService extends MicroService {
             // Error was detected
             if (dob.getId().equals("ERROR")) {
                 camera.setStatus(STATUS.ERROR);
-                System.out.println(getName() +" sending Crash at: " + tickTime);
                 sendBroadcast(new CrashedBroadcast(getName()));
-                // LastFrameCamera lf = new LastFrameCamera(getName(),lastDetectedObjTime
-                // ,lastDetectedObj);
                 ErrorCoordinator.getInstance().setLastFramesCameras(getName(), lastDetectedObjects);
                 ErrorCoordinator.getInstance().setCrashed(getName(), tickTime, dob.getDescription());
                 terminate();

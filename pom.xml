@@ -46,12 +46,6 @@
                     <useModulePath>false</useModulePath>
                 </configuration>
             </plugin>
-<!--                &lt;!&ndash; Exec Maven Plugin &ndash;&gt;-->
-<!--                <plugin>-->
-<!--                    <groupId>org.codehaus.mojo</groupId>-->
-<!--                    <artifactId>exec-maven-plugin</artifactId>-->
-<!--                    <version>3.0.0</version>-->
-<!--                </plugin>-->
         </plugins>
     </build>
 </project>

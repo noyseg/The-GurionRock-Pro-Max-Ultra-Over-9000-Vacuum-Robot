@@ -34,8 +34,6 @@ public class PoseService extends MicroService {
     @Override
     protected void initialize() {
 
-        System.out.println(getName() + " started");
-
         // Handle TickBroadcast to process each tick and generate PoseEvents.
         subscribeBroadcast(TickBroadcast.class, tick -> {
             // If no cameras or lidars are left, set GPSIMU status to DOWN and terminate.

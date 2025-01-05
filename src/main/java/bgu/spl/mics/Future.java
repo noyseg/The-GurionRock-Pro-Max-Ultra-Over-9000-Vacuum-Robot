@@ -41,7 +41,7 @@ public class Future<T> {
 					lock.wait();
 				} catch (InterruptedException ie) {
 					System.out.println("Get Future linit time Interrupt: " + Thread.currentThread());
-					Thread.currentThread().interrupt(); // To do put interrupt somewhere
+					Thread.currentThread().interrupt();
 				}
 			}
 			return result;
@@ -76,7 +76,7 @@ public class Future<T> {
 	 * by {@code timeout}
 	 * <p>
 	 * 
-	 * @param timout the maximal amount of time units to wait for the result.
+	 * @param timeout the maximal amount of time units to wait for the result.
 	 * @param unit   the {@link TimeUnit} time units to wait.
 	 * @return return the result of type T if it is available, if not,
 	 *         wait for {@code timeout} TimeUnits {@code unit}. If time has
@@ -84,13 +84,12 @@ public class Future<T> {
 	 */
 	public T get(long timeout, TimeUnit unit) {
 		synchronized(lock){
-		if (isResolved){
-			return result;
-		}
-		long time = unit.toMillis(timeout);
-		long remainingTime = time;
-		long endTime = System.currentTimeMillis() + remainingTime;
-		synchronized (lock) {
+			if (isResolved){
+				return result;
+			}
+			long time = unit.toMillis(timeout);
+			long remainingTime = time;
+			long endTime = System.currentTimeMillis() + remainingTime;
 			while (remainingTime > 0) {
 				if (isResolved) {
 					return result;
@@ -98,14 +97,12 @@ public class Future<T> {
 				try {
 					lock.wait(remainingTime);
 				} catch (InterruptedException ie) {
-					System.out.println("Get Future linit time Interrupt: " + Thread.currentThread());
-					Thread.currentThread().interrupt(); // To do put interrupt somewhere
+					System.out.println("Get Future limit time Interrupt: " + Thread.currentThread());
+					Thread.currentThread().interrupt(); 
 				}
-				remainingTime = endTime - System.currentTimeMillis(); // to consider transform to another place to be
-																		// accuratie
+				remainingTime = endTime - System.currentTimeMillis(); 
 			}
-		}
-		return null;
+			return null;
 	}
 	}
 }

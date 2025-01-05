@@ -59,7 +59,7 @@ class FusionSlamTest {
         Door = new LinkedList<>();
         Door.add(c1);
         Door.add(c2);
-        p = new Pose(2, -2.366f, 0.9327f, -28.08f);
+        p = new Pose(1, -2.366f, 0.9327f, -28.08f);
         globalDoor = FusionSlam.poseTransformation(p, Door);
 
         Door1 = new LinkedList<>();
@@ -72,7 +72,7 @@ class FusionSlamTest {
         c12 = new CloudPoint(x12, y12);
         c22 = new CloudPoint(x22, y22);
         c3 = new CloudPoint(x3, y3);
-        p1 = new Pose(4, -0.436f, 2.8818f, 38.85f);
+        p1 = new Pose(2, -0.436f, 2.8818f, 38.85f);
         Door1.add(c12);
         Door1.add(c22);
         Door1.add(c3);
@@ -83,7 +83,7 @@ class FusionSlamTest {
         y13 = -2.4;
         c13 = new CloudPoint(x13, y13);
         Door2.add(c13);
-        p2 = new Pose(6, 0.5f, 4.4f, 68.76f);
+        p2 = new Pose(3, 0.5f, 4.4f, 68.76f);
         globalDoor2 = FusionSlam.poseTransformation(p2, Door2);
     }
 

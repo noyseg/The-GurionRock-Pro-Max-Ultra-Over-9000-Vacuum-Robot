@@ -15,9 +15,7 @@ public class TrackedObject {
     private final List<CloudPoint> coordinates;
     
     /**
-     *
-     * 
-     * @param time The time the object was tracked
+     * @param time The time the object was detected
      * @param id The ID of the object
      * @param description The description of the tracked object
      * @param coordinates The coordinates of the object
@@ -30,7 +28,7 @@ public class TrackedObject {
     }
 
     /**
-     * @return The time the object was tracked
+     * @return The time the object was detected
      */
     public int getTime() {
         return time;

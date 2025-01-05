@@ -37,8 +37,6 @@ class LiDarWorkerTrackerTest {
         sender = "camera1";
     }
 
-
-
     /**
      * Tests the detectToTrack method of LiDarWorkerTracker with a single object.
      * This test verifies that the tracker correctly prepares data(DetectObject) before sending it to the FusionService,
