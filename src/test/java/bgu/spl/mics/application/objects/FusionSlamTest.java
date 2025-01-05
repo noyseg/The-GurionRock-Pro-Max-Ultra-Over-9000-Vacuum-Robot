@@ -11,7 +11,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FusionSlamTest {
     private FusionSlam fusionSlam;
-    private HashMap<String, LandMark> landMarks;
     // New LandMark
     Double x1;
     Double y1;
@@ -51,7 +50,6 @@ class FusionSlamTest {
     @BeforeEach
     void setUp() {
         this.fusionSlam = FusionSlam.getInstance();
-        this.landMarks = new HashMap<>();
         x1 = 0.5;
         y1 = -2.1;
         x2 = 0.8;

@@ -18,14 +18,12 @@ class MessageBusTest {
     private MessageBusImpl messageBus;
     private MicroService testMicroService;
     private PoseEvent poseEvent;
-    private TickBroadcast tickBroadcast;
 
     @BeforeEach
     void setUp() {
         messageBus = MessageBusImpl.getInstance(); // Create a fresh instance
         testMicroService = new TimeService(4, 3);
         poseEvent = new PoseEvent(new Pose(1, 1.0f, 30.0f, 5));
-        tickBroadcast = new TickBroadcast(5);
 
     }
 
@@ -224,9 +222,6 @@ class MessageBusTest {
         assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(broadcast1));
         assertTrue(messageBus.getMicroServicesQueues().get(testMicroService).contains(broadcast2));
 
-        // Test sending a null broadcast (if null is allowed)
-//        assertThrows(IllegalArgumentException.class, () -> messageBus.sendBroadcast(null));
-
         // Test concurrent broadcast sending
         int threadCount = 10;
         CountDownLatch latch = new CountDownLatch(threadCount);
@@ -387,7 +382,6 @@ class MessageBusTest {
         assertFalse(messageBus.getEventSubscribers().get(ExampleEvent.class).contains(testMicroService));
 
         // Test unregistering a MicroService that was subscribed to broadcasts
-        ExampleBroadcast exampleBroadcast = new ExampleBroadcast("Test");
         messageBus.register(testMicroService);
         messageBus.subscribeBroadcast(ExampleBroadcast.class, testMicroService);
         messageBus.unregister(testMicroService);
@@ -429,7 +423,7 @@ class MessageBusTest {
         // Create and send a test message
         PoseEvent testEvent = new PoseEvent(new Pose(1, 1.0f, 30.0f, 5));
         messageBus.subscribeEvent(PoseEvent.class, microService);
-        Future<Boolean> future = messageBus.sendEvent(testEvent);
+        messageBus.sendEvent(testEvent);
 
         // Test awaiting and receiving the message
         Message receivedMessage = messageBus.awaitMessage(microService);
