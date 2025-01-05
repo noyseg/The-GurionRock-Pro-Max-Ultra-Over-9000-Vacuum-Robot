@@ -4,6 +4,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import bgu.spl.mics.application.messages.TickBroadcast;
+
 /**
  * The {@link MessageBusImpl class is the implementation of the MessageBus
  * interface.
@@ -75,13 +77,13 @@ public class MessageBusImpl implements MessageBus {
     public void sendBroadcast(Broadcast b) {
         for (MicroService ms : broadcastSubscribers.get(b.getClass())) {
             try {
-                microServicesQueues.get(ms).add(b);
-            }
-            catch (NullPointerException np){
-                System.out.println("You try to send brodcast to unregistered microservice");
+                    microServicesQueues.get(ms).add(b);
+                }
+                catch (NullPointerException np){
+                    System.out.println("You try to send brodcast to unregistered microservice");
+                }
             }
         }
-    }
 
     // does e is unique??
     // according to what the hash map maps MicroService nameqadreess??

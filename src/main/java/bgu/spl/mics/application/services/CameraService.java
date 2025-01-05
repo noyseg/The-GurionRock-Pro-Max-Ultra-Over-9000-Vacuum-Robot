@@ -120,6 +120,7 @@ public class CameraService extends MicroService {
             // Error was detected 
             if (dob.getId().equals("ERROR")) {
                 camera.setStatus(STATUS.ERROR);
+                System.out.println(getName() +" sending Crash at: " + tickTime);
                 sendBroadcast(new CrashedBroadcast(getName()));
                 //LastFrameCamera lf = new LastFrameCamera(getName(),lastDetectedObjTime ,lastDetectedObj);
                 ErrorCoordinator.getInstance().setLastFramesCameras(getName(), lastDetectedObjects);

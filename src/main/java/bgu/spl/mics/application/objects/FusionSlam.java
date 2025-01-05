@@ -20,6 +20,7 @@ public class FusionSlam {
     private final HashMap<String, LandMark> landMarks; // Stores the landmarks identified in the map
     private final List<Pose> poses; // Stores the list of robot poses over time
     private int microservicesCounter; // Keeps track of the number of active microservices
+    private boolean finished; // Checks if fusionSlam finished his job and can be terminated
 
     /**
      * Private constructor to initialize the FusionSlam instance.
@@ -29,6 +30,7 @@ public class FusionSlam {
         this.landMarks = new HashMap<String, LandMark>();
         this.poses = new LinkedList<Pose>();
         this.microservicesCounter = 0;
+        this.finished = false;
     }
 
     /**
@@ -72,6 +74,15 @@ public class FusionSlam {
      */
     public int getMicroservicesCounter() {
         return this.microservicesCounter;
+    }
+
+    /**
+     * Returns finished status for fusion slam.
+     *
+     * @return true if fusionSlam can be terminated and false otherwise.
+     */
+    public boolean getFinished() {
+        return this.finished;
     }
 
      /**
@@ -167,7 +178,7 @@ public class FusionSlam {
         List<CloudPoint> newCloudPoints = new LinkedList<>();
         float xRobot = robotPosition.getX();
         float yRobot = robotPosition.getY();
-        Double radians = robotPosition.getYaw() * Math.PI/180;
+        Double radians = robotPosition.getYaw() * Math.PI/180.0;
         Double cos = Math.cos(radians);
         Double sin = Math.sin(radians);
         for (CloudPoint cp: cloudPoints){
@@ -179,11 +190,18 @@ public class FusionSlam {
         return newCloudPoints;
     }
 
-        /**
+    /**
      * Sets the count of active microservices.
      */
     public void setMicroserviceCount(int microservicesCounter) {
         this.microservicesCounter = microservicesCounter;
+    }
+
+    /**
+     * Sets finish to be true
+     */
+    public void setFinished() {
+        this.finished = true;
     }
 
 

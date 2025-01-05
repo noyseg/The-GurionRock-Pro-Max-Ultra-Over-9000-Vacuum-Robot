@@ -85,6 +85,9 @@ public class FusionSlamService extends MicroService {
                 createOutputFile();
                 terminate(); // Fusion Slum's Time to finish 
             }
+            if (fusionSlam.getMicroservicesCounter() == 0 && waitingTracked.isEmpty() && fusionSlam.getFinished() == false){
+                fusionSlam.setFinished();
+            }
         });
 
         // Handle CrashedBroadcast: handles any crash event from other services
