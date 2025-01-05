@@ -24,7 +24,7 @@ class MessageBusTest {
     void setUp() {
         messageBus = MessageBusImpl.getInstance(); // Create a fresh instance
         testMicroService = new TimeService(4, 3);
-        poseEvent = new PoseEvent(new Pose(1.0f, 1.0f, 30.0f, 5));
+        poseEvent = new PoseEvent(new Pose(1, 1.0f, 30.0f, 5));
         tickBroadcast = new TickBroadcast(5);
 
     }
@@ -286,18 +286,18 @@ class MessageBusTest {
         messageBus.getMicroServicesQueues().get(testMicroService).clear();
         messageBus.getMicroServicesQueues().get(anotherService).clear();
         // Test concurrent event sending
-        int threadCount = 10;
+        int threadCount = 1000;
         CountDownLatch latch = new CountDownLatch(threadCount);
         for (int i = 0; i < threadCount; i++) {
             new Thread(() -> {
                 PoseEvent concurrentEvent = new PoseEvent(new Pose(8, 8, 8, 5));
                 messageBus.sendEvent(concurrentEvent);
                 latch.countDown();
-                try {
-                    Thread.sleep(10); // Wait for a small amount of time between sending events
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
+//                try {
+//                    Thread.sleep(10); // Wait for a small amount of time between sending events
+//                } catch (InterruptedException e) {
+//                    Thread.currentThread().interrupt();
+//                }
             }).start();
         }
         try {
@@ -306,8 +306,8 @@ class MessageBusTest {
             fail("Thread interruption occurred");
         }
         // Check that all events were received by all services and that the sum of events is the same at each service
-        assertEquals(5, messageBus.getMicroServicesQueues().get(testMicroService).size());
-        assertEquals(5, messageBus.getMicroServicesQueues().get(testMicroService).size());
+        assertEquals(500, messageBus.getMicroServicesQueues().get(testMicroService).size());
+        assertEquals(500, messageBus.getMicroServicesQueues().get(testMicroService).size());
     }
 
 
@@ -427,7 +427,7 @@ class MessageBusTest {
         messageBus.register(microService);
 
         // Create and send a test message
-        PoseEvent testEvent = new PoseEvent(new Pose(1.0f, 1.0f, 30.0f, 5));
+        PoseEvent testEvent = new PoseEvent(new Pose(1, 1.0f, 30.0f, 5));
         messageBus.subscribeEvent(PoseEvent.class, microService);
         Future<Boolean> future = messageBus.sendEvent(testEvent);
 

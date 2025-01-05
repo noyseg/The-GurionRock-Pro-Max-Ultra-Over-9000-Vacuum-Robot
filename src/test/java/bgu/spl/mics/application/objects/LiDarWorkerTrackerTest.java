@@ -1,9 +1,7 @@
 package bgu.spl.mics.application.objects;
 
-import bgu.spl.mics.application.objects.DetectedObject;
-import bgu.spl.mics.application.objects.LiDarWorkerTracker;
+
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedList;
@@ -39,10 +37,7 @@ class LiDarWorkerTrackerTest {
         sender = "camera1";
     }
 
-//    @AfterEach
-//    void tearDown() throws Exception {
-//
-//    }
+
 
     /**
      * Tests the detectToTrack method of LiDarWorkerTracker with a single object.
@@ -117,10 +112,5 @@ class LiDarWorkerTrackerTest {
             assertEquals(expected.getX(), actual.getX(), 0.0001);
             assertEquals(expected.getY(), actual.getY(), 0.0001);
         }
-    }
-
-    @Test
-    void detectToTrackAfterClearing() {
-
     }
 }

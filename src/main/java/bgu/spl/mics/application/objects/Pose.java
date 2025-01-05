@@ -18,7 +18,7 @@ public class Pose {
      * @param yaw  The yaw angle (orientation) of the pose
      * @param time The timestamp for the pose
      */
-    public Pose(float x, float y, float yaw, int time) {
+    public Pose(int time, float x, float y, float yaw) {
         this.time = time;
         this.x = x;
         this.y = y;
