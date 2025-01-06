@@ -55,6 +55,7 @@ public class GurionRockRunner {
             List<LiDarService> liDarServices = initializeLidars(config, gson, camerasServices.size(),configFileDir);
             PoseService poseService = initializePoseService(config, gson, camerasServices.size(), liDarServices.size(),configFileDir);
             FusionSlam.getInstance().setMicroserviceCount(camerasServices.size() + 1 + liDarServices.size());
+            FusionSlam.getInstance().setOutputFilePath(configFileDir.toString());
 
             // Start microServices in separate threads
             List<Thread> microServices = new LinkedList<>();

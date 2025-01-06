@@ -162,7 +162,7 @@ public class FusionSlamService extends MicroService {
         }
         // Serialize to JSON and write to file
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        try (FileWriter writer = new FileWriter("output_file.json")) {
+        try (FileWriter writer = new FileWriter(fusionSlam.getOutputFilePath()+"\\output_file.json")) {
             gson.toJson(outputData, writer);
         } catch (IOException e) {
             e.printStackTrace();

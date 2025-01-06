@@ -22,6 +22,7 @@ public class FusionSlam {
     private final List<Pose> poses; // Stores the list of robot poses over time
     private int microservicesCounter; // Keeps track of the number of active microservices
     private boolean finished; // Checks if fusionSlam finished his job and can be terminated
+    private String outputFilePath; // The filePath of the output file
 
     /**
      * Private constructor to initialize the FusionSlam instance.
@@ -32,6 +33,7 @@ public class FusionSlam {
         this.poses = new LinkedList<Pose>();
         this.microservicesCounter = 0;
         this.finished = false;
+        this.outputFilePath = "";
     }
 
     /**
@@ -41,6 +43,15 @@ public class FusionSlam {
      */
     public static FusionSlam getInstance() {
         return FusionSlamHolder.instance;
+    }
+
+    /**
+     * Returns the filePath of the output file
+     *
+     * @return The filePath of the output file
+     */
+    public String getOutputFilePath(){
+        return this.outputFilePath;
     }
 
     /**
@@ -216,6 +227,13 @@ public class FusionSlam {
      */
     public void setFinished() {
         this.finished = true;
+    }
+
+    /**
+     * Sets a new output file path
+     */
+    public void setOutputFilePath(String newOutputFilePath){
+        this.outputFilePath = newOutputFilePath;
     }
 
 }
