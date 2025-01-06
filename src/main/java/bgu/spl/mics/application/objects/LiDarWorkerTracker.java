@@ -23,7 +23,7 @@ public class LiDarWorkerTracker {
 
     /**
      * Constructs a new LiDarWorkerTracker.
-     * 
+     *
      * @param id           The unique ID of the LiDAR worker.
      * @param frequency    The processing frequency of the LiDAR worker.
      * @param filePath     The file path to the LiDAR database.
@@ -32,7 +32,7 @@ public class LiDarWorkerTracker {
     public LiDarWorkerTracker(int id , int frequency, String filePath, int numOfCameras){
         this.id = id;
         this.frequency = frequency;
-        this.name = "LiDar" + String.valueOf(id);
+        this.name = "LiDarWorkerTracker" + String.valueOf(id);
         this.status = STATUS.UP;
         this.lastTrackedObjectList = new LinkedList<>();
         this.liDarDataBase = LiDarDataBase.getInstance(filePath);
@@ -44,14 +44,14 @@ public class LiDarWorkerTracker {
      */
     public int getId(){
         return this.id;
-    } 
+    }
 
     /**
      * @return The current operational status of the LiDAR worker.
      */
     public STATUS getStatus(){
         return this.status;
-    } 
+    }
 
     /**
      * @return The processing frequency of the LiDAR worker.
@@ -76,21 +76,21 @@ public class LiDarWorkerTracker {
 
     /**
      * Sets the last list of tracked objects processed by this LiDAR worker.
-     * 
+     *
      * @param trackedObjects A list of tracked objects to set.
      */
     public void setLastTrackedObjectList(List<TrackedObject> trackedObjects) {
         this.lastTrackedObjectList = trackedObjects;
-    } 
+    }
 
     /**
      * Sets the operational status of the LiDAR worker.
-     * 
+     *
      * @param status The new status of the worker (e.g., UP or DOWN).
      */
     public void setStatus(STATUS status){
         this.status = status;
-    } 
+    }
 
     /**
      * @return The name of the LiDAR worker.
@@ -100,7 +100,7 @@ public class LiDarWorkerTracker {
     }
 
     /**
-     * @return The number of cameras currently relevant to send data to LiDAR worker 
+     * @return The number of cameras currently relevant to send data to LiDAR worker
      */
     public int getCameraCount(){
         return this.numOfCameras;
@@ -108,7 +108,7 @@ public class LiDarWorkerTracker {
 
     /**
      * Decrements the number of cameras associated with this LiDAR worker by 1.
-     * 
+     *
      * @return The updated number of cameras after decrementing.
      */
     public int decrementCameraCount(){
@@ -119,11 +119,19 @@ public class LiDarWorkerTracker {
      * Converts a detected object into a tracked object.
      * This involves fetching cloud point data from the database and creating a
      * {@link TrackedObject} using the detected object's data in the database.
-     * 
+     *
      * @param detectedObject The detected object to process.
      * @param time           The time of detection.
      * @param sender         The name of the sender service.
      * @return A {@link TrackedObject} representing the detected object.
+     *
+     * @pre detectedObject != null
+     * @pre time >= 0
+     * @pre sender != null
+     * @post A new {@link TrackedObject} is created with the provided detection data.
+     * @post The {@link TrackedObject} contains all cloud points associated with the detected object.
+     *
+     * @inv The {@link DetectedObject} and its associated cloud point data remain unaltered.
      */
     public TrackedObject detectToTrack(DetectedObject detectedObject, int time, String sender){
         List<List<Double>> cloudPointsData = getLiDarDataBase().getCloudPointsData(time, detectedObject.getId());

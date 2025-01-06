@@ -11,6 +11,11 @@ import java.util.List;
  * a global map.
  * Implements the Singleton pattern to ensure a single instance of FusionSlam
  * exists.
+ * 
+ * @inv landMarks != null
+ * @inv poses != null
+ * @inv microservicesCounter >= 0
+ * @inv finished == true implies microservicesCounter == 0
  */
 public class FusionSlam {
     // Singleton instance holder
@@ -22,6 +27,7 @@ public class FusionSlam {
     private final List<Pose> poses; // Stores the list of robot poses over time
     private int microservicesCounter; // Keeps track of the number of active microservices
     private boolean finished; // Checks if fusionSlam finished his job and can be terminated
+    private String outputFilePath; // The filePath of the output file
 
     /**
      * Private constructor to initialize the FusionSlam instance.
@@ -32,6 +38,7 @@ public class FusionSlam {
         this.poses = new LinkedList<Pose>();
         this.microservicesCounter = 0;
         this.finished = false;
+        this.outputFilePath = "";
     }
 
     /**
@@ -41,6 +48,15 @@ public class FusionSlam {
      */
     public static FusionSlam getInstance() {
         return FusionSlamHolder.instance;
+    }
+
+    /**
+     * Returns the filePath of the output file
+     *
+     * @return The filePath of the output file
+     */
+    public String getOutputFilePath() {
+        return this.outputFilePath;
     }
 
     /**
@@ -187,7 +203,8 @@ public class FusionSlam {
      * @param cloudPoints   The list of cloud points to be transformed.
      * @return The transformed list of cloud points in the global frame.
      * @pre robotPosition != null && cloudPoints != null
-     * @post result.size() == cloudPoints.size() with correct global coordinates.
+     * @post @return.size() == cloudPoints.size() with correct global coordinates.
+     * @inv The input list of cloud points and the robot's pose remain unchanged during the transformation.
      */
     public static List<CloudPoint> poseTransformation(Pose robotPosition, List<CloudPoint> cloudPoints) {
         List<CloudPoint> newCloudPoints = new LinkedList<>();
@@ -217,6 +234,13 @@ public class FusionSlam {
      */
     public void setFinished() {
         this.finished = true;
+    }
+
+    /**
+     * Sets a new output file path
+     */
+    public void setOutputFilePath(String newOutputFilePath) {
+        this.outputFilePath = newOutputFilePath;
     }
 
 }

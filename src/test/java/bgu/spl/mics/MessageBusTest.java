@@ -85,12 +85,6 @@ class MessageBusTest {
         MicroService unregisteredService = new TimeService(1, 1);
         assertThrows(IllegalStateException.class, () -> messageBus.subscribeEvent(ExampleEvent.class, unregisteredService));
 
-//        // Test subscribing to a null event
-//        assertThrows(IllegalArgumentException.class, () -> messageBus.subscribeEvent(null, testMicroService));
-//
-//        // Test subscribing a null MicroService
-//        assertThrows(IllegalArgumentException.class, () -> messageBus.subscribeEvent(ExampleEvent.class, null));
-
         // Test subscribing after unregistering
         messageBus.unregister(testMicroService);
         assertThrows(IllegalStateException.class, () -> messageBus.subscribeEvent(ExampleEvent.class, testMicroService));
@@ -139,12 +133,6 @@ class MessageBusTest {
         // Test subscribing to a broadcast without being registered
         MicroService unregisteredService = new TimeService(1, 1);
         assertThrows(IllegalStateException.class, () -> messageBus.subscribeBroadcast(ExampleBroadcast.class, unregisteredService));
-
-//        // Test subscribing to a null broadcast
-//        assertThrows(IllegalArgumentException.class, () -> messageBus.subscribeBroadcast(null, testMicroService));
-//
-//        // Test subscribing a null MicroService
-//        assertThrows(IllegalArgumentException.class, () -> messageBus.subscribeBroadcast(ExampleBroadcast.class, null));
 
         // Test subscribing after unregistering
         messageBus.unregister(testMicroService);
@@ -287,11 +275,6 @@ class MessageBusTest {
                 PoseEvent concurrentEvent = new PoseEvent(new Pose(8, 8, 8, 5));
                 messageBus.sendEvent(concurrentEvent);
                 latch.countDown();
-//                try {
-//                    Thread.sleep(10); // Wait for a small amount of time between sending events
-//                } catch (InterruptedException e) {
-//                    Thread.currentThread().interrupt();
-//                }
             }).start();
         }
         try {
@@ -324,9 +307,6 @@ class MessageBusTest {
         messageBus.register(testMicroService);
         assertEquals(2, messageBus.getMicroServicesQueues().size());
 
-//        // Test registering null MicroService
-//        assertThrows(IllegalArgumentException.class, () -> messageBus.register(null));
-
         // Test registering after unregistering
         messageBus.unregister(testMicroService);
         messageBus.register(testMicroService);
@@ -339,7 +319,6 @@ class MessageBusTest {
             messageBus.register(service);
         }
         assertEquals(1002, messageBus.getMicroServicesQueues().size());
-
 
         // This test assumes that the MessageBusImpl is thread-safe
         int threadCount = 10;

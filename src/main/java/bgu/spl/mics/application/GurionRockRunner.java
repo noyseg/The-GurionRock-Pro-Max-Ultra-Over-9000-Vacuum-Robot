@@ -48,7 +48,6 @@ public class GurionRockRunner {
         try (FileReader mainReader = new FileReader(configFilePath)) {
             Gson gson = new Gson();
             ConfigFile config = gson.fromJson(mainReader, ConfigFile.class);
-            System.out.println("Initializing simulation components...");
             FusionSlamService FusionSlamService = new FusionSlamService(FusionSlam.getInstance());
 
             // Initialize services
@@ -56,6 +55,7 @@ public class GurionRockRunner {
             List<LiDarService> liDarServices = initializeLidars(config, gson, camerasServices.size(),configFileDir);
             PoseService poseService = initializePoseService(config, gson, camerasServices.size(), liDarServices.size(),configFileDir);
             FusionSlam.getInstance().setMicroserviceCount(camerasServices.size() + 1 + liDarServices.size());
+            FusionSlam.getInstance().setOutputFilePath(configFileDir.toString());
 
             // Start microServices in separate threads
             List<Thread> microServices = new LinkedList<>();
@@ -74,7 +74,6 @@ public class GurionRockRunner {
             }
 
             // need to create time service after all threads are running
-            System.out.println("Simulation initialized. Starting simulation loop...");
             Thread timeServiceThread = new Thread(new TimeService(config.getTickTime(), config.getDuration()), "Time");
 
             // Delay to ensure all threads are initialized before starting the time service
@@ -109,7 +108,6 @@ public class GurionRockRunner {
                 Type mapType = new TypeToken<Map<String, List<StampedDetectedObjects>>>() {
                 }.getType();
                 Map<String, List<StampedDetectedObjects>> cameraData = gson.fromJson(reader, mapType);
-                System.out.println("Initializing camera's components...");
                 for (CamerasConfigurations cameraInfo : Cameras) {
                     for (String camera : cameraData.keySet()) {
                         // This is the dectecdObjects list for the specified camera
@@ -138,7 +136,6 @@ public class GurionRockRunner {
     public static List<LiDarService> initializeLidars(ConfigFile config, Gson gson, int numOfCameras,Path configFileDir) {
         List<LiDarService> liDarServices = new LinkedList<>();
         if (config.getLidars() != null) {
-            System.out.println("Initializing lidar's components...");
             List<LidarConfigurations> allLidar = config.getLidars().getLidars();
             String lidarPath = config.getLidars().getLidarDataPath();
             if (lidarPath.startsWith("./")) {
@@ -149,7 +146,6 @@ public class GurionRockRunner {
                 LiDarWorkerTracker newLidar = new LiDarWorkerTracker(lidar.getId(), lidar.getFrequency(),
                         LidarDataPath.toString(), numOfCameras);
                 liDarServices.add(new LiDarService(newLidar));
-                System.out.println(newLidar);
             }
         }
         return liDarServices;
@@ -176,7 +172,6 @@ public class GurionRockRunner {
                 Type listType = new TypeToken<List<Pose>>() {
                 }.getType();
                 List<Pose> poses = gson.fromJson(reader, listType);
-                System.out.println("Initializing GPSIMU's components...");
                 GPSIMU gps = new GPSIMU(0, poses, numOfCameras, numOfLidars);
                 return new PoseService(gps);
             } catch (IOException e) {

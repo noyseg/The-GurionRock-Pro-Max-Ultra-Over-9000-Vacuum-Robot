@@ -55,7 +55,7 @@ public class MessageBusImpl implements MessageBus {
         //Checking if microservice is already registered
         if (microServicesQueues.get(m) != null) {
             eventSubscribers.putIfAbsent(type, new LinkedBlockingQueue<>()); // If specified key is not already associated
-            // with a value, associate it with the given
+            // Adding the microservice to the eventSubscribers data structure if necessary
             if (!eventSubscribers.get(type).contains(m)) {
                 eventSubscribers.get(type).add(m);
             }
@@ -78,8 +78,7 @@ public class MessageBusImpl implements MessageBus {
     public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
         if (microServicesQueues.get(m) != null) {
             broadcastSubscribers.putIfAbsent(type, new LinkedBlockingQueue<>());// If specified key is not already
-            // associated with a value, associate it
-            // with the given value atomicly
+            // associated with a value 
             if (!broadcastSubscribers.get(type).contains(m)) {
                 broadcastSubscribers.get(type).add(m);
             }
@@ -113,13 +112,11 @@ public class MessageBusImpl implements MessageBus {
     public void sendBroadcast(Broadcast b) {
         for (MicroService ms : broadcastSubscribers.get(b.getClass())) {
             try {
-                    microServicesQueues.get(ms).add(b);
-                }
-                catch (NullPointerException np){
-                    System.out.println("You try to send brodcast to unregistered microservice");
-                }
+                microServicesQueues.get(ms).add(b);
+            } catch (NullPointerException np) {
             }
         }
+    }
 
     /**
      * Sends an event to one of the subscribed microservices in a round-robin fashion.
@@ -138,13 +135,12 @@ public class MessageBusImpl implements MessageBus {
             if (eventOptions != null) {
                 MicroService m = eventOptions.poll();
                 if (m != null) {
-                    eventOptions.add(m); // keep round robin
+                    eventOptions.add(m); // Implementing the Round Robin logic
                     Future<T> future = new Future<T>();
                     eventAndFutureUnresolved.put(e, future);
                     try {
                         microServicesQueues.get(m).add(e);
                     } catch (NullPointerException np) {
-                        System.out.println("You try to send event to unregistered microservice");
                         return null;
                     }
                     return future;
@@ -165,7 +161,6 @@ public class MessageBusImpl implements MessageBus {
         microServicesQueues.put(m, new LinkedBlockingQueue<Message>());
     }
 
-    @Override
     /**
      * Unregisters a microservice from the message bus, removing it from all
      * subscriptions and resolving any pending events with null.
@@ -173,13 +168,14 @@ public class MessageBusImpl implements MessageBus {
      * @param m the microservice to be unregistered. It must be previously registered
      *          with the message bus.
      */
+    @Override
     public void unregister(MicroService m) {
         BlockingQueue<Message> needToFinished = microServicesQueues.remove(m);
         // Microservice is registered
         if (needToFinished != null) {
             for (Message mes : needToFinished) {
                 // We need to resolve events
-                if (mes instanceof Event<?> && eventAndFutureUnresolved.get(mes)!=null) {
+                if (mes instanceof Event<?> && eventAndFutureUnresolved.get(mes) != null) {
                     eventAndFutureUnresolved.get(mes).resolve(null); // We want to resolve any waiting Futures
                     eventAndFutureUnresolved.remove(mes);
                 }
@@ -197,7 +193,6 @@ public class MessageBusImpl implements MessageBus {
         }
     }
 
-    @Override
     /**
      * Retrieves and removes the head of the message queue for the specified microservice,
      * waiting if necessary until a message becomes available.
@@ -205,32 +200,50 @@ public class MessageBusImpl implements MessageBus {
      * @param m the microservice whose message queue is to be accessed.
      *          It must be previously registered with the message bus.
      * @return the head message from the microservice's queue.
-     * @throws InterruptedException if interrupted while waiting for a message.
+     * @throws InterruptedException  if interrupted while waiting for a message.
      * @throws IllegalStateException if the microservice is not registered.
      */
+    @Override
     public Message awaitMessage(MicroService m) throws InterruptedException {
         BlockingQueue<Message> queue = microServicesQueues.get(m);
-        if (queue == null) {// to check if can be not null after this line
+        if (queue == null) { // To check if can be not null after this line
             throw new IllegalStateException("MicroService not registered: " + m.getName());
         }
         return queue.take(); // Blocks until a message is available
     }
-
     /**
      * Getters for testing purpose.
+     * Retrieves the mapping of registered microservices to their message queues.
+     *
+     * @return A concurrent map mapping microservices to their message queues.
      */
     public ConcurrentHashMap<MicroService, BlockingQueue<Message>> getMicroServicesQueues() {
         return this.microServicesQueues;
     }
 
+    /**
+     * Retrieves the mapping of event types to the list of subscribing microservices.
+     *
+     * @return A concurrent map mapping event types to their subscribers.
+     */
     public ConcurrentHashMap<Class<? extends Event<?>>, BlockingQueue<MicroService>> getEventSubscribers() {
         return this.eventSubscribers;
     }
 
+    /**
+     * Retrieves the mapping of broadcast types to the list of subscribing microservices.
+     *
+     * @return A concurrent map mapping broadcast types to their subscribers.
+     */
     public ConcurrentHashMap<Class<? extends Broadcast>, BlockingQueue<MicroService>> getBroadcastSubscribers() {
         return this.broadcastSubscribers;
     }
 
+    /**
+     * Retrieves the mapping of unresolved events to their associated futures.
+     *
+     * @return A concurrent map mapping unresolved events to their futures.
+     */
     public ConcurrentHashMap<Event<?>, Future<?>> getEventAndFutureUnresolved() {
         return this.eventAndFutureUnresolved;
     }

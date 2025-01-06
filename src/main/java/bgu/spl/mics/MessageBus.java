@@ -18,6 +18,10 @@ public interface MessageBus {
      * @param <T>  The type of the result expected by the completed event.
      * @param type The type to subscribe to,
      * @param m    The subscribing micro-service.
+     * 
+     * @invariant All registered microservices have a non-null, allocated message queue.
+     * @invariant Subscribed microservices for events and broadcasts are properly tracked.
+     * @invariant Futures associated with unresolved events are properly stored and managed.
      * @pre: type != null
      * @pre: m != null
      * @pre: The MicroService is registered.

@@ -40,14 +40,11 @@ public class TimeService extends MicroService {
     @Override
     protected void initialize() {
 
-        System.out.println(getName() + " started");
-
             // Continue running until the specified duration is reached or there are no more active microservices
             while (FusionSlam.getInstance().getFinished() == false && currentTick < duration) {
                 try{
                     // Increment the tick counter and broadcast TickBroadcast
                     currentTick++;
-                    System.out.println("Time Service: " + currentTick);
                     StatisticalFolder.getInstance().incrementSystemRunTime(1);
                     sendBroadcast(new TickBroadcast(currentTick));
                     // Sleep for tickTime duration (convert to milliseconds)

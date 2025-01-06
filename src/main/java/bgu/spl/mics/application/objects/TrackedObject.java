@@ -9,28 +9,26 @@ import java.util.List;
  */
 public class TrackedObject {
 
-    private final int time; 
     private final String id;
+    private final int time; 
     private final String description; 
     private final List<CloudPoint> coordinates;
     
     /**
-     *
-     * 
-     * @param time The time the object was tracked
      * @param id The ID of the object
+     * @param time The time the object was detected
      * @param description The description of the tracked object
      * @param coordinates The coordinates of the object
      */
     public TrackedObject(int time, String id, String description, List<CloudPoint> coordinates) {
-        this.time = time;
         this.id = id;
+        this.time = time;
         this.description = description;
         this.coordinates = coordinates;
     }
 
     /**
-     * @return The time the object was tracked
+     * @return The time the object was detected
      */
     public int getTime() {
         return time;
@@ -60,8 +58,8 @@ public class TrackedObject {
     @Override
     public String toString() {
         return "TrackedObject{" +
-                "time=" + time +
-                ", id='" + id + '\'' +
+                "id=" + id +
+                ", time='" + time + '\'' +
                 ", description='" + description + '\'' +
                 ", coordinates=" + coordinates.toString() +
                 '}';

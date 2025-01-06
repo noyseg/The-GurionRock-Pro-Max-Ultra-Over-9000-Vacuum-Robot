@@ -1,4 +1,8 @@
 -------------------------------------------------------------------------------
 Test set: bgu.spl.mics.MessageBusTest
 -------------------------------------------------------------------------------
+<<<<<<< HEAD
 Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.256 s -- in bgu.spl.mics.MessageBusTest
+=======
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.191 s -- in bgu.spl.mics.MessageBusTest
+>>>>>>> 262c908b6ec7af8e90ec439a0d4b2b4463b85dd0

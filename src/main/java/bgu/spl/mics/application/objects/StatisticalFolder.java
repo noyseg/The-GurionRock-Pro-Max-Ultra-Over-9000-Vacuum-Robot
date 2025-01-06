@@ -1,6 +1,6 @@
 package bgu.spl.mics.application.objects;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -17,7 +17,7 @@ public class StatisticalFolder {
     private final AtomicInteger numDetectedObjects; // Tracks the number of detected objects
     private final AtomicInteger numTrackedObjects; // Tracks the number of tracked objects
     private final AtomicInteger numLandmarks; // Tracks the number of landmarks
-    private ArrayList<LandMark> landMarks; // List of identified landmarks
+    private HashMap<String,LandMark> landMarks; // HashMap of identified landmarks
 
     /**
      * Private constructor for singleton pattern
@@ -75,7 +75,13 @@ public class StatisticalFolder {
         return numLandmarks.get();
     }
 
-    public ArrayList<LandMark> getLandMarks(){
+
+    /**
+     * Return HashMap of landMarks that were identified by the system
+     *
+     * @return HashMap of landMarks that were identified 
+     */
+    public HashMap<String,LandMark> getLandMarks(){
         return this.landMarks;
     }
 
@@ -120,11 +126,11 @@ public class StatisticalFolder {
     }
 
     /**
-     * Sets the list of identified landmarks.
+     * Sets the HashMap of identified landmarks.
      *
-     * @param landMarks The list of landmarks to be set.
+     * @param landMarks The HashMap of landmarks to be set.
      */
-    public void setLandMarkslist(ArrayList<LandMark> landMarks) {
+    public void setLandMarksMap(HashMap<String,LandMark> landMarks) {
         this.landMarks = landMarks;
     }
 }

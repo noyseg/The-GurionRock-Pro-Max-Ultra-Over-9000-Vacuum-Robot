@@ -2,8 +2,6 @@ package bgu.spl.mics.application.services;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -52,8 +50,6 @@ public class FusionSlamService extends MicroService {
      */
     @Override
     protected void initialize() {
-        
-        System.out.println(getName() + " started");
 
         // Handle TrackedObjectsEvent: updates landmarks with new tracked objects
         subscribeEvent(TrackedObjectsEvent.class, trackedObj -> { 
@@ -68,12 +64,12 @@ public class FusionSlamService extends MicroService {
                 for(TrackedObject ObjectToUpdate :ObjectsToUpdate){
                     fusionSlam.setLandMarks(ObjectToUpdate,pose.getPose());
                 }
+                waitingTracked.remove(pose.getPose().getTime());
             }
         });
 
         // Handle TerminatedBroadcast: checks when other services are terminated
         subscribeBroadcast(TerminatedBroadcast.class, terminate -> {
-            System.out.println(waitingTracked.isEmpty());
             // Time Service was terminated 
             if (terminate.getSenderName().equals("TimeService"))
                 isTimeServiceTerminated = true;
@@ -84,6 +80,12 @@ public class FusionSlamService extends MicroService {
             if (fusionSlam.getMicroservicesCounter() == 0 && isTimeServiceTerminated){
                 createOutputFile();
                 terminate(); // Fusion Slum's Time to finish 
+            }
+            // FusionSlam finished its job
+            for(List<TrackedObject> l:waitingTracked.values()){
+                for(TrackedObject t: l){
+                    System.err.println(t);
+                }
             }
             if (fusionSlam.getMicroservicesCounter() == 0 && waitingTracked.isEmpty() && fusionSlam.getFinished() == false){
                 fusionSlam.setFinished();
@@ -134,17 +136,13 @@ public class FusionSlamService extends MicroService {
     private void createOutputFile() {
         // Prepare data to serialize
         LinkedHashMap<String, Object> outputData = new LinkedHashMap<>();
-        Collection<LandMark> values = fusionSlam.getLandMarks().values(); 
- 
-        // Creating a list of landmarks
-        ArrayList<LandMark> landMarkslist = new ArrayList<>(values);
-        StatisticalFolder.getInstance().setLandMarkslist(landMarkslist);
+        StatisticalFolder.getInstance().setLandMarksMap(fusionSlam.getLandMarks());
         if (error){
             // If an error occurred, add error details to the output
             outputData.put("error",errorCoordinator.getDescription());
             outputData.put("faultySensor", errorCoordinator.getFaultSensor());
-            outputData.put("lastCamerasFrame",errorCoordinator.getLastFramesCameras());
-            outputData.put("lastLiDarWorkerTrackersFrame",errorCoordinator.getLastFramesLidars());
+            outputData.put("lastCamerasFrames",errorCoordinator.getLastFramesCameras());
+            outputData.put("lastLidarFrames",errorCoordinator.getLastFramesLidars());
             outputData.put("poses", errorCoordinator.getRobotPoses());
             outputData.put("statistics",StatisticalFolder.getInstance());
         }
@@ -158,9 +156,8 @@ public class FusionSlamService extends MicroService {
         }
         // Serialize to JSON and write to file
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        try (FileWriter writer = new FileWriter("output_file.json")) {
+        try (FileWriter writer = new FileWriter(fusionSlam.getOutputFilePath()+"\\output_file.json")) {
             gson.toJson(outputData, writer);
-            System.out.println("Output file has been created: output_file.json");
         } catch (IOException e) {
             e.printStackTrace();
         }
