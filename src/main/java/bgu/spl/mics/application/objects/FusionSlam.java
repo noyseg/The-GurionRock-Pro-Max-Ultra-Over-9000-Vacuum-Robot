@@ -113,6 +113,7 @@ public class FusionSlam {
      * @param currentPose   The current pose to be used for updating the landmark's
      *                      position.
      * @pre trackedObject != null && currentPose != null
+     * @pre trackedObject.getTime() == currentPose.getTime()
      * @post getLandMarks().containsKey(trackedObject.getId())
      */
     public void setLandMarks(TrackedObject trackedObject, Pose currentPose) {

@@ -11,7 +11,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FusionSlamTest {
     private FusionSlam fusionSlam;
-    private HashMap<String, LandMark> landMarks;
     // New LandMark
     Double x1;
     Double y1;
@@ -51,7 +50,6 @@ class FusionSlamTest {
     @BeforeEach
     void setUp() {
         this.fusionSlam = FusionSlam.getInstance();
-        this.landMarks = new HashMap<>();
         x1 = 0.5;
         y1 = -2.1;
         x2 = 0.8;
@@ -61,7 +59,7 @@ class FusionSlamTest {
         Door = new LinkedList<>();
         Door.add(c1);
         Door.add(c2);
-        p = new Pose(2, -2.366f, 0.9327f, -28.08f);
+        p = new Pose(1, -2.366f, 0.9327f, -28.08f);
         globalDoor = FusionSlam.poseTransformation(p, Door);
 
         Door1 = new LinkedList<>();
@@ -74,7 +72,7 @@ class FusionSlamTest {
         c12 = new CloudPoint(x12, y12);
         c22 = new CloudPoint(x22, y22);
         c3 = new CloudPoint(x3, y3);
-        p1 = new Pose(4, -0.436f, 2.8818f, 38.85f);
+        p1 = new Pose(2, -0.436f, 2.8818f, 38.85f);
         Door1.add(c12);
         Door1.add(c22);
         Door1.add(c3);
@@ -85,7 +83,7 @@ class FusionSlamTest {
         y13 = -2.4;
         c13 = new CloudPoint(x13, y13);
         Door2.add(c13);
-        p2 = new Pose(6, 0.5f, 4.4f, 68.76f);
+        p2 = new Pose(3, 0.5f, 4.4f, 68.76f);
         globalDoor2 = FusionSlam.poseTransformation(p2, Door2);
     }
 
@@ -127,6 +125,7 @@ class FusionSlamTest {
     void setLandMarksTest() {
         TrackedObject trackedObject = new TrackedObject(1, "door", "door", Door);
         fusionSlam.setLandMarks(trackedObject, p);
+        assertEquals(trackedObject.getTime(),p.getTime());
         assertEquals(-2.913332578606659, fusionSlam.getLandMarks().get("door").getCoordinates().get(0).getX());
         assertEquals(-1.1554635639732926, fusionSlam.getLandMarks().get("door").getCoordinates().get(0).getY());
         assertEquals(-2.742785996686237, fusionSlam.getLandMarks().get("door").getCoordinates().get(1).getX());
@@ -134,6 +133,7 @@ class FusionSlamTest {
 
         TrackedObject trackedObject1 = new TrackedObject(2, "door", "door", Door1);
         fusionSlam.setLandMarks(trackedObject1, p1);
+        assertEquals(trackedObject1.getTime(),p1.getTime());
         assertEquals(-0.8032597578231248, fusionSlam.getLandMarks().get("door").getCoordinates().get(0).getX());
         assertEquals(0.1718645871282981, fusionSlam.getLandMarks().get("door").getCoordinates().get(0).getY());
         assertEquals(-0.5572579806832476, fusionSlam.getLandMarks().get("door").getCoordinates().get(1).getX());
@@ -143,6 +143,7 @@ class FusionSlamTest {
 
         TrackedObject trackedObject2 = new TrackedObject(3, "door", "door", Door2);
         fusionSlam.setLandMarks(trackedObject2, p2);
+        assertEquals(trackedObject2.getTime(),p2.getTime());
         assertEquals(1.108142851708548, fusionSlam.getLandMarks().get("door").getCoordinates().get(0).getX());
         assertEquals(2.2147096820308003, fusionSlam.getLandMarks().get("door").getCoordinates().get(0).getY());
         assertEquals(-0.5572579806832476, fusionSlam.getLandMarks().get("door").getCoordinates().get(1).getX());
