@@ -2,8 +2,6 @@ package bgu.spl.mics.application.services;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -138,11 +136,7 @@ public class FusionSlamService extends MicroService {
     private void createOutputFile() {
         // Prepare data to serialize
         LinkedHashMap<String, Object> outputData = new LinkedHashMap<>();
-        Collection<LandMark> values = fusionSlam.getLandMarks().values(); 
- 
-        // Creating a list of landmarks
-        ArrayList<LandMark> landMarkslist = new ArrayList<>(values);
-        StatisticalFolder.getInstance().setLandMarkslist(landMarkslist);
+        StatisticalFolder.getInstance().setLandMarksMap(fusionSlam.getLandMarks());
         if (error){
             // If an error occurred, add error details to the output
             outputData.put("error",errorCoordinator.getDescription());
