@@ -145,7 +145,7 @@ public class LiDarService extends MicroService {
     */
     private void handleCrash(String reason) {
         ErrorCoordinator.getInstance().setLastFramesLidars(getName(), lidarWorker.getLastTrackedObjectList());
-        ErrorCoordinator.getInstance().setCrashed(getName(), currentTick, reason);
+        ErrorCoordinator.getInstance().setCrashed("LiDarWorkerTracker "+ String.valueOf(lidarWorker.getId()), currentTick, reason);
         sendBroadcast(new CrashedBroadcast(getName()));
         terminate();
     }

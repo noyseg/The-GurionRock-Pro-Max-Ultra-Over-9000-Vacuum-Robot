@@ -147,8 +147,8 @@ public class FusionSlamService extends MicroService {
             // If an error occurred, add error details to the output
             outputData.put("error",errorCoordinator.getDescription());
             outputData.put("faultySensor", errorCoordinator.getFaultSensor());
-            outputData.put("lastCamerasFrame",errorCoordinator.getLastFramesCameras());
-            outputData.put("lastLiDarWorkerTrackersFrame",errorCoordinator.getLastFramesLidars());
+            outputData.put("lastCamerasFrames",errorCoordinator.getLastFramesCameras());
+            outputData.put("lastLidarFrames",errorCoordinator.getLastFramesLidars());
             outputData.put("poses", errorCoordinator.getRobotPoses());
             outputData.put("statistics",StatisticalFolder.getInstance());
         }

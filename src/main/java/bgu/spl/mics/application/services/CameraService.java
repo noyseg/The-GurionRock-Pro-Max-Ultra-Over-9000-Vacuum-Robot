@@ -122,7 +122,7 @@ public class CameraService extends MicroService {
                 camera.setStatus(STATUS.ERROR);
                 sendBroadcast(new CrashedBroadcast(getName()));
                 ErrorCoordinator.getInstance().setLastFramesCameras(getName(), lastDetectedObjects);
-                ErrorCoordinator.getInstance().setCrashed(getName(), tickTime, dob.getDescription());
+                ErrorCoordinator.getInstance().setCrashed("Camera "+ String.valueOf(camera.getID()), tickTime, dob.getDescription());
                 terminate();
             }
         }

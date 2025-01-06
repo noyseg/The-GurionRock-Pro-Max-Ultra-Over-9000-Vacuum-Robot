@@ -32,7 +32,7 @@ public class LiDarWorkerTracker {
     public LiDarWorkerTracker(int id , int frequency, String filePath, int numOfCameras){
         this.id = id;
         this.frequency = frequency;
-        this.name = "LiDarWorkerTracker " + String.valueOf(id);
+        this.name = "LiDarWorkerTracker" + String.valueOf(id);
         this.status = STATUS.UP;
         this.lastTrackedObjectList = new LinkedList<>();
         this.liDarDataBase = LiDarDataBase.getInstance(filePath);

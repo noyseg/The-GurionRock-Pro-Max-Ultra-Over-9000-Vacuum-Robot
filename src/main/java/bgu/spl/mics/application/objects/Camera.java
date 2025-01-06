@@ -24,7 +24,7 @@ public class Camera {
      */
     public Camera(int id, int frequency, List<StampedDetectedObjects> detectedObjectsList) {
         this.id = id;
-        this.name = "Camera " + String.valueOf(id);
+        this.name = "Camera" + String.valueOf(id);
         this.frequency = frequency;
         this.detectedObjectsList = new LinkedList<>(detectedObjectsList);
         this.status = STATUS.UP; // Cameras start in the UP (active) state.
