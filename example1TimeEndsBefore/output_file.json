@@ -3,8 +3,8 @@
   "numDetectedObjects": 10,
   "numTrackedObjects": 10,
   "numLandmarks": 7,
-  "landMarks": [
-    {
+  "landMarks": {
+    "Wall_4": {
       "id": "Wall_4",
       "description": "Wall",
       "coordinates": [
@@ -18,7 +18,7 @@
         }
       ]
     },
-    {
+    "Wall_3": {
       "id": "Wall_3",
       "description": "Wall",
       "coordinates": [
@@ -32,7 +32,7 @@
         }
       ]
     },
-    {
+    "Circular_Base_1": {
       "id": "Circular_Base_1",
       "description": "Circular Base",
       "coordinates": [
@@ -46,7 +46,7 @@
         }
       ]
     },
-    {
+    "Wall_1": {
       "id": "Wall_1",
       "description": "Wall",
       "coordinates": [
@@ -60,7 +60,7 @@
         }
       ]
     },
-    {
+    "Chair_Base_1": {
       "id": "Chair_Base_1",
       "description": "Chair Base",
       "coordinates": [
@@ -74,7 +74,7 @@
         }
       ]
     },
-    {
+    "Door": {
       "id": "Door",
       "description": "Door",
       "coordinates": [
@@ -88,7 +88,7 @@
         }
       ]
     },
-    {
+    "Wall_5": {
       "id": "Wall_5",
       "description": "Wall",
       "coordinates": [
@@ -102,5 +102,5 @@
         }
       ]
     }
-  ]
+  }
 }

@@ -1,8 +1,0 @@
--------------------------------------------------------------------------------
-Test set: bgu.spl.mics.application.objects.FusionSlamTest
--------------------------------------------------------------------------------
-<<<<<<< HEAD
-Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.155 s -- in bgu.spl.mics.application.objects.FusionSlamTest
-=======
-Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.058 s -- in bgu.spl.mics.application.objects.FusionSlamTest
->>>>>>> 262c908b6ec7af8e90ec439a0d4b2b4463b85dd0
